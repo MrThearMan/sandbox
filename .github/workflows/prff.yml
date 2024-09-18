@@ -15,8 +15,7 @@ jobs:
 
     steps:
       - run: |
-          echo workspace ${{ github.workspace }}
-          echo event_path ${{ github.event_path }}
+          ls ${{ github.workspace }}
         shell: bash
 
       - name: Fast-forward
