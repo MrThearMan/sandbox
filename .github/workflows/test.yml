@@ -8,4 +8,5 @@ on:
   workflow_dispatch:
 
 jobs:
-  uses: MrThearMan/sandbox/.github/workflows/prff.yml@main
+  test:
+    uses: MrThearMan/sandbox/.github/workflows/prff.yml@main
