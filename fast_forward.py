@@ -1,18 +1,17 @@
-import logging
+import json
 from argparse import ArgumentParser
-from pathlib import Path
-
-logger = logging.getLogger(__name__)
+from typing import Any
 
 
 def main(*, github_token: str, event_path: str) -> int:
     print("Hello, world!")
 
-    logger.error(f"github_token: {github_token}")
-    logger.error(f"event_path: {event_path}")
+    print(f"github_token len", f"{len(github_token)}")
 
-    text = Path(event_path).read_text()
-    print(text)
+    with open(event_path, encoding="utf-8") as f:
+        data: dict[str, Any] = json.load(f)
+
+    print("Data", data)
 
     return 0
 
