@@ -15,7 +15,12 @@ jobs:
 
     steps:
       - run: |
-          ls ${{ github.workspace }}
+          cd ${{ github.workspace }}
+          ls -la
+          cd ..
+          ls -la
+          cd ..
+          ls -la
         shell: bash
 
       - name: Fast-forward
