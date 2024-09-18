@@ -14,15 +14,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - run: |
-          cd ${{ github.workspace }}
-          ls -la
-          cd ..
-          ls -la
-          cd ..
-          ls -la
-        shell: bash
-
+      - uses: actions/checkout@v3
       - name: Fast-forward
         id: fast-forward
         run: |
