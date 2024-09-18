@@ -2,6 +2,8 @@ name: Test
 
 on:
   push:
+    branches:
+      - main
   pull_request:
   workflow_dispatch:
 
@@ -10,3 +12,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: echo "Hello, world!"
+      - uses: MrThearMan/sandbox/.github/workflows/prff.yml@main
