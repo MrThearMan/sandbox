@@ -14,10 +14,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - run: |
+          echo action_path ${{ github.action_path }}
+          echo event_path ${{ github.event_path }}
+        shell: bash
+
       - name: Fast-forward
         id: fast-forward
         run: |
           python ${{ github.action_path }}/fast_forward.py \
-            --github-token ${{ inputs.github_token }} }
+            --github-token ${{ inputs.github_token }} \
             --event-path ${{ github.event_path }}
         shell: bash
