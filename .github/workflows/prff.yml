@@ -14,11 +14,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Fast-forward
         id: fast-forward
         run: |
           python ${{ github.workspace }}/fast_forward.py \
-            --github-token ${{ inputs.github_token }} \
-            --event-path ${{ github.event_path }}
+            --github-token '${{ inputs.github_token }}' \
+            --event-path '${{ github.event_path }}'
         shell: bash
