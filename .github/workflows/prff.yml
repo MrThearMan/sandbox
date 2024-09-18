@@ -15,14 +15,14 @@ jobs:
 
     steps:
       - run: |
-          echo action_path ${{ github.path }}
+          echo workspace ${{ github.workspace }}
           echo event_path ${{ github.event_path }}
         shell: bash
 
       - name: Fast-forward
         id: fast-forward
         run: |
-          python ${{ github.path }}/fast_forward.py \
+          python ${{ github.workspace }}/fast_forward.py \
             --github-token ${{ inputs.github_token }} \
             --event-path ${{ github.event_path }}
         shell: bash
