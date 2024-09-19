@@ -1,5 +1,6 @@
 import json
 import http.client
+import base64
 import os
 import urllib.parse
 from argparse import ArgumentParser
@@ -14,9 +15,7 @@ from schema import IssueCommentEvent
 
 
 def main(*, github_token: str, event_path: str) -> int:
-    print("github_token len:", len(github_token))
-    print("github_token:", github_token)
-    print("event_path:", event_path)
+    print("github_token:", base64.b64encode(github_token.encode()).decode()),
 
     with open(event_path, encoding="utf-8") as f:
         data: IssueCommentEvent = json.load(f)
