@@ -63,6 +63,7 @@ def main(*, event_path: str, connection: http.client.HTTPSConnection) -> int:
     print(f"Head SHA: {head_sha}")
 
     can_fast_forward = get_exit_code(f"git merge-base --is-ancestor {base_sha} {head_sha}")
+    print("can_fast_forward", can_fast_forward, type(can_fast_forward))
     if can_fast_forward != 0:
         print(f"Cannot fast forward base {base_sha} to head {head_sha}")
         return 1
