@@ -754,6 +754,34 @@ class Reactions(_Reactions):
     """The URL to the reactions on the pull request."""
 
 
+class Permission(TypedDict):
+    pull: bool
+    """Whether the user has pull permissions."""
+
+    triage: bool
+    """Whether the user has triage permissions."""
+
+    push: bool
+    """Whether the user has push permissions."""
+
+    maintain: bool
+    """Whether the user has maintain permissions."""
+
+    admin: bool
+    """Whether the user has admin permissions."""
+
+
+class UserPermission(TypedDict):
+    permission: Permission
+    """The permission level of the user."""
+
+    role_name: Literal["admin", "write", "read", "none"]
+    """The role of the user."""
+
+    user: User
+    """The user who has the permission."""
+
+
 class Issue(TypedDict):
     active_lock_reason: str | None
     """The reason for the pull request being locked."""
