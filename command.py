@@ -30,5 +30,10 @@ def get_exit_code(command: str, *, directory: Path | None = None) -> int:
     :param directory: The directory to run the command in.
     """
     process = subprocess.Popen(command.split(" "), stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=directory)
-    process.communicate()
+    stdout, stderr = process.communicate()
+
+    error = stderr.decode()
+    if error:
+        print(error)
+
     return process.returncode
