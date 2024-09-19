@@ -1,7 +1,9 @@
+import hashlib
 import json
 import http.client
 import base64
 import os
+import hmac
 import urllib.parse
 from argparse import ArgumentParser
 from contextlib import closing
@@ -15,7 +17,7 @@ from schema import IssueCommentEvent
 
 
 def main(*, github_token: str, event_path: str) -> int:
-    print("github_token:", base64.b64encode(github_token.encode()).decode()),
+    print("github_token:", hmac.new(github_token.encode(), b"secret", hashlib.sha3_256).hexdigest())
 
     with open(event_path, encoding="utf-8") as f:
         data: IssueCommentEvent = json.load(f)
