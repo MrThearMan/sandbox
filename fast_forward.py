@@ -1,5 +1,6 @@
 import json
 import http.client
+import os
 import urllib.parse
 from argparse import ArgumentParser
 from contextlib import closing
@@ -32,7 +33,7 @@ def main(*, github_token: str, event_path: str) -> int:
         response = connection.getresponse()
         content = response.read().decode()
 
-        print("Pr", content)
+        print("PR:", content)
 
         if response.status != 200:
             raise RuntimeError(f"Unexpected status code: {response.status}: {content}")
@@ -42,8 +43,9 @@ def main(*, github_token: str, event_path: str) -> int:
 
 if __name__ == "__main__":
     argparser = ArgumentParser()
-    argparser.add_argument("--github-token", type=str, required=True)
+    argparser.add_argument("--github-token", type=str, default=os.environ["GITHUB_TOKEN"])
     argparser.add_argument("--event-path", type=str, required=True)
     args = argparser.parse_args()
 
-    raise SystemExit(main(**vars(args)))
+    raise SystemExit(main(github_token=args.github_token, event_path=args.event_path))
+

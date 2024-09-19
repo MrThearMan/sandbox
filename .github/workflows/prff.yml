@@ -18,10 +18,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+
       - name: Fast-forward
         id: fast-forward
+        env:
+          GITHUB_TOKEN: ${{ inputs.github_token }}
         run: |
           python ${{ github.workspace }}/fast_forward.py \
-            --github-token '${{ inputs.github_token }}' \
             --event-path '${{ github.event_path }}'
         shell: bash
