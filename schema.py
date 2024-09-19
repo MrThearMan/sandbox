@@ -2,7 +2,7 @@ from typing import Literal, TypedDict
 
 __all__ = [
     "PullRequestEvent",
-    "PullRequestCommentEvent",
+    "IssueCommentEvent",
 ]
 
 
@@ -702,6 +702,150 @@ class PullRequest(TypedDict):
     """The user who opened the pull request."""
 
 
+class IssuePullRequest(TypedDict):
+    diff_url: str
+    """The URL to the diff of the pull request."""
+
+    html_url: str
+    """The URL to the pull request."""
+
+    merged_at: str | None  # datetime
+    """The date and time the pull request was merged."""
+
+    patch_url: str
+    """The URL to the patch of the pull request."""
+
+    url: str
+    """The URL to the pull request."""
+
+
+_Reactions = TypedDict(
+    "_Reactions",
+    {
+        "+1": int,  # The number of +1s on the pull request.
+        "-1": int,  # The number of -1s on the pull request.
+    },
+)
+
+
+class Reactions(_Reactions):
+    confused: int
+    """The number of confused reactions on the pull request."""
+
+    eyes: int
+    """The number of eyes on the pull request."""
+
+    heart: int
+    """The number of hearts on the pull request."""
+
+    hooray: int
+    """The number of hooray reactions on the pull request."""
+
+    laugh: int
+    """The number of laugh reactions on the pull request."""
+
+    rocket: int
+    """The number of rocket reactions on the pull request."""
+
+    total_count: int
+    """The total number of reactions on the pull request."""
+
+    url: str
+    """The URL to the reactions on the pull request."""
+
+
+class Issue(TypedDict):
+    active_lock_reason: str | None
+    """The reason for the pull request being locked."""
+
+    assignee: User | None
+    """The user who is assigned to the pull request."""
+
+    assignees: list[User]
+    """The users who are assigned to the pull request."""
+
+    author_association: AuthorAccociation
+    """The author association of the pull request."""
+
+    body: str | None
+    """The body of the pull request."""
+
+    closed_at: str | None
+    """The date and time the pull request was closed."""
+
+    comments: int
+    """The number of comments on the pull request."""
+
+    comments_url: str
+    """The API URL to the comments on the pull request."""
+
+    created_at: str  # datetime
+    """The date and time the pull request was created."""
+
+    draft: bool
+    """Whether the pull request is a draft."""
+
+    events_url: str
+    """The API URL to the events on the pull request."""
+
+    html_url: str
+    """The URL to the pull request."""
+
+    id: int
+    """The ID of this event."""
+
+    labels: list[Label]
+    """The labels associated with the pull request."""
+
+    labels_url: str
+    """The API URL to the labels on the pull request."""
+
+    locked: bool
+    """Whether the pull request is locked."""
+
+    milestone: Milestone | None
+    """The milestone associated with the pull request."""
+
+    node_id: str
+    """Global Node ID (GraphQL) for the pull request"""
+
+    number: int
+    """The number of the pull request."""
+
+    pull_request: IssuePullRequest
+    """The pull request accociated with the event."""
+
+    patch_url: str
+    """The URL to the patch of the pull request."""
+
+    reactions: Reactions
+    """The reactions in the pull request."""
+
+    repository_url: str
+    """The API URL to the repository on GitHub where the event occurred. """
+
+    state: Literal["open", "closed"]
+    """The state of the pull request."""
+
+    state_reason: str | None
+    """The reason for the state of the pull request."""
+
+    timeline_url: str
+    """The API URL to the timeline on the pull request."""
+
+    title: str
+    """The title of the pull request."""
+
+    updated_at: str  # datetime
+    """The date and time the pull request was last updated."""
+
+    url: str
+    """The URL to the pull request."""
+
+    user: User
+    """The user who opened the pull request."""
+
+
 class PullRequestEvent(TypedDict):
     """Payload for GitHub event that occurs for a pull request.
 
@@ -724,7 +868,7 @@ class PullRequestEvent(TypedDict):
     """The GitHub user that triggered the event."""
 
 
-class PullRequestCommentEvent(TypedDict):
+class IssueCommentEvent(TypedDict):
     """Payload for GitHub event for a pull request comment.
 
     Note: GitHub considers every pull request an issue.
@@ -738,8 +882,8 @@ class PullRequestCommentEvent(TypedDict):
     comment: Comment
     """The pull request number."""
 
-    issue: PullRequest
-    """The pull request where the comment was made."""
+    issue: Issue
+    """The issue (or pull request) where the comment was made."""
 
     repository: Repository
     """The repository on GitHub where the event occurred. """
@@ -748,4 +892,4 @@ class PullRequestCommentEvent(TypedDict):
     """The GitHub user that triggered the event."""
 
 
-Event = PullRequestEvent | PullRequestCommentEvent
+Event = PullRequestEvent | IssueCommentEvent

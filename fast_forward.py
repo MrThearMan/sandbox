@@ -1,8 +1,10 @@
 import json
+import http.client
+import urllib.parse
 from argparse import ArgumentParser
-from typing import TypeGuard
+from contextlib import closing
 
-from schema import Event, PullRequestCommentEvent, PullRequestEvent
+from schema import IssueCommentEvent
 
 
 # https://github.com/sequoia-pgp/fast-forward/blob/main/.github/workflows/fast-forward.yml
@@ -10,27 +12,30 @@ from schema import Event, PullRequestCommentEvent, PullRequestEvent
 # https://github.com/sequoia-pgp/fast-forward/blob/main/src/fast-forward.sh
 
 
-def is_pr_created(data: Event) -> TypeGuard[PullRequestEvent]:
-    return hasattr(data, "pull_request")
-
-
-def is_pr_comment(data: Event) -> TypeGuard[PullRequestCommentEvent]:
-    return hasattr(data, "issue")
-
-
 def main(*, github_token: str, event_path: str) -> int:
-    print(f"github_token len", f"{len(github_token)}")
-
     with open(event_path, encoding="utf-8") as f:
-        data: Event = json.load(f)
+        data: IssueCommentEvent = json.load(f)
 
-    if is_pr_created(data):
-        pr = data["pull_request"]
-        print(f"base_re: {pr}")
+    pull_request_url = data["issue"]["pull_request"]["url"]
+    url_parts = urllib.parse.urlparse(pull_request_url)
 
-    elif is_pr_comment(data):
-        issue = data["issue"]
-        print(f"issue: {issue}")
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {github_token}",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+
+    connection = http.client.HTTPSConnection(url_parts.netloc)
+
+    with closing(connection):
+        connection.request("GET", url=url_parts.path, headers=headers)
+        response = connection.getresponse()
+        content = response.read().decode()
+
+        print("Pr", content)
+
+        if response.status != 200:
+            raise RuntimeError(f"Unexpected status code: {response.status}: {content}")
 
     return 0
 
