@@ -28,6 +28,7 @@ def main(*, github_token: str, event_path: str) -> int:
         "Accept": "application/vnd.github+json",
         "Authorization": f"Bearer {github_token}",
         "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "MrThearMan-GitHub-Fast-Forward-Action",
     }
 
     connection = http.client.HTTPSConnection(url_parts.netloc)
