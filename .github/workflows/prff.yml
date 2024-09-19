@@ -2,11 +2,6 @@ name: Fast-forward merge pull request
 
 on:
   workflow_call:
-    inputs:
-      github_token:
-        required: false
-        type: string
-        default: '${{ github.token }}'
 
 jobs:
   test:
@@ -22,7 +17,7 @@ jobs:
       - name: Fast-forward
         id: fast-forward
         env:
-          GITHUB_TOKEN: ${{ inputs.github_token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python ${{ github.workspace }}/fast_forward.py \
             --event-path '${{ github.event_path }}'

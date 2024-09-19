@@ -15,6 +15,7 @@ from schema import IssueCommentEvent
 
 def main(*, github_token: str, event_path: str) -> int:
     print("github_token len:", len(github_token))
+    print("github_token:", github_token)
     print("event_path:", event_path)
 
     with open(event_path, encoding="utf-8") as f:
