@@ -3,7 +3,6 @@ import http.client
 import os
 import urllib.parse
 from argparse import ArgumentParser
-from pathlib import Path
 
 from command import run_command
 from schema import IssueCommentEvent, PullRequest, UserPermission
@@ -14,7 +13,7 @@ from schema import IssueCommentEvent, PullRequest, UserPermission
 
 
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
-GITHUB_ACTOR = os.environ["GITHUB_ACTOR"]
+GITHUB_ACTOR = os.environ["GITHUB_ACTOR"]  # Required? data["sender"]["login"]?
 HEADERS = {
     "Accept": "application/vnd.github+json",
     "Authorization": f"Bearer {GITHUB_TOKEN}",
@@ -37,9 +36,11 @@ def request(connection: http.client.HTTPSConnection, *, url: str) -> str | None:
 
 
 def main(*, event_path: str, connection: http.client.HTTPSConnection) -> int:
+    print("Loading event...")
     with open(event_path, encoding="utf-8") as f:
         data: IssueCommentEvent = json.load(f)
 
+    print("Getting pull request data...")
     response = request(connection, url=data["issue"]["pull_request"]["url"])
     if not response:
         print("Could not get pull request")
@@ -47,27 +48,21 @@ def main(*, event_path: str, connection: http.client.HTTPSConnection) -> int:
 
     pull_request: PullRequest = json.loads(response)
 
-    username = data["sender"]["login"]
-
-    print(f"Username: {username}")
-    print(f"Actor: {GITHUB_ACTOR}")
-
+    print("Cloning pull request repo...")
     clone_url = pull_request["base"]["repo"]["clone_url"]
     credentials = f"url={clone_url}\nusername={GITHUB_ACTOR}\npassword={GITHUB_TOKEN}"
 
+    print("Setting git credential helper to store...")
     result = run_command("git config --global credential.helper store")
     if result.exit_code != 0:
         print(f"Could not set git credential helper to store. Error: {result.err}")
         return 1
 
+    print("Approving git credentials...")
     result = run_command(f'echo -e "{credentials}" | git credential approve')
     if result.exit_code != 0:
         print(f"Could not approve git credentials. Error: {result.err}")
         return 1
-
-    clone_url_parts = urllib.parse.urlparse(clone_url)._asdict()
-    clone_url_parts["netloc"] = f"{GITHUB_ACTOR}@{clone_url_parts['netloc']}"
-    auth_clone_url = urllib.parse.urlunparse(clone_url_parts.values())
 
     base_ref = pull_request["base"]["ref"]
 
@@ -77,11 +72,18 @@ def main(*, event_path: str, connection: http.client.HTTPSConnection) -> int:
 
     clone_path = "./clone"
 
+    print("Configuring clone url...")
+    clone_url_parts = urllib.parse.urlparse(clone_url)._asdict()
+    clone_url_parts["netloc"] = f"{GITHUB_ACTOR}@{clone_url_parts['netloc']}"
+    auth_clone_url = urllib.parse.urlunparse(clone_url_parts.values())
+
+    print(f"Cloning {clone_url}:{base_ref} to {clone_path}...")
     result = run_command(f"git clone --quiet --single-branch --branch {base_ref} {auth_clone_url} {clone_path}")
     if result.exit_code != 0:
         print(f"Could not clone base ref. Error: {result.err}")
         return 1
 
+    print("Finding base ref...")
     result = run_command(f"git rev-parse origin/{base_ref}", directory=clone_path)
     if result.err is not None:
         print(f"Could not find base ref. Error: {result.err}")
@@ -93,16 +95,18 @@ def main(*, event_path: str, connection: http.client.HTTPSConnection) -> int:
     print(f"Base SHA: {base_sha}")
     print(f"Head SHA: {head_sha}")
 
+    print("Checking if can fast forward...")
     result = run_command(f"git merge-base --is-ancestor {base_sha} {head_sha}", directory=clone_path)
     if result.exit_code != 0:
         print(f"Cannot fast forward base {base_sha[:7]} to head {head_sha[:7]}. Error: {result.err}")
         return 1
 
-    # Check permissions
+    print("Formatting permissions url...")
+    username = data["sender"]["login"]
     collaborators_url = data["repository"]["collaborators_url"].format(**{"/collaborator": f"/{username}"})
-
     permissions_url = f"{collaborators_url}/permission"
 
+    print("Checking permissions for pushing...")
     response = request(connection, url=permissions_url)
     if not response:
         print("Could not get user permissions")
@@ -115,6 +119,8 @@ def main(*, event_path: str, connection: http.client.HTTPSConnection) -> int:
     if permissions["permission"]["pull"] is False:
         print(f"User {username} does not have permissions for merging.")
         return 1
+
+    print("Fast-forwarding...")
 
     return 0
 
