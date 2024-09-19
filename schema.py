@@ -1,4 +1,4 @@
-from typing import Literal, Optional, TypedDict, List, Union
+from typing import Literal, TypedDict
 
 __all__ = [
     "PullRequestEvent",
@@ -111,7 +111,7 @@ class User(TypedDict):
 
 
 class Team(TypedDict):
-    description: Optional[str]
+    description: str | None
     """The description of the team."""
 
     html_url: str
@@ -275,7 +275,7 @@ class Repository(TypedDict):
     has_wiki: bool
     """Whether the repository has the wiki enabled."""
 
-    homepage: Optional[str]
+    homepage: str | None
     """The homepage of the repository."""
 
     hooks_url: str
@@ -311,7 +311,7 @@ class Repository(TypedDict):
     languages_url: str
     """The API URL to the languages of the repository."""
 
-    license: Optional[str]
+    license: str | None
     """The license of the repository."""
 
     merge_commit_message: Literal["PR_BODY", "PR_TITLE", "BLANK"]
@@ -326,7 +326,7 @@ class Repository(TypedDict):
     milestones_url: str
     """The API URL to the milestones of the repository."""
 
-    mirror_url: Optional[str]
+    mirror_url: str | None
     """The mirror URL of the repository."""
 
     name: str
@@ -395,7 +395,7 @@ class Repository(TypedDict):
     teams_url: str
     """The API URL to the teams of the repository."""
 
-    topics: List[str]
+    topics: list[str]
     """The topics of the repository."""
 
     trees_url: str
@@ -455,7 +455,7 @@ class AutoMergeStatus(TypedDict):
 
 
 class Milestone(TypedDict):
-    closed_at: Optional[str]  # datetime
+    closed_at: str | None  # datetime
     """The date and time the milestone was closed"""
 
     closed_issues: int
@@ -470,7 +470,7 @@ class Milestone(TypedDict):
     description: str
     """The description of the milestone"""
 
-    due_on: Optional[str]  # datetime
+    due_on: str | None  # datetime
     """The date and time the milestone is due"""
 
     html_url: str
@@ -511,7 +511,7 @@ class Label(TypedDict):
     default: bool
     """Whether the label is a default label"""
 
-    description: Optional[str]
+    description: str | None
     """The description of the label"""
 
     id: int
@@ -560,34 +560,34 @@ class Comment(TypedDict):
 
 
 class PullRequest(TypedDict):
-    active_lock_reason: Optional[str]
+    active_lock_reason: str | None
     """The reason for the pull request being locked."""
 
     additions: int
     """The number of additions in the pull request."""
 
-    assignee: Optional[User]
+    assignee: User | None
     """The user who is assigned to the pull request."""
 
-    assignees: List[User]
+    assignees: list[User]
     """The users who are assigned to the pull request."""
 
     author_association: AuthorAccociation
     """The author association of the pull request."""
 
-    auto_merge: Optional[AutoMergeStatus]
+    auto_merge: AutoMergeStatus | None
     """The auto merge status of the pull request."""
 
     base: Ref
     """The base ref of the pull request."""
 
-    body: Optional[str]
+    body: str | None
     """The body of the pull request."""
 
     changed_files: int
     """The number of changed files in the pull request."""
 
-    closed_at: Optional[str]
+    closed_at: str | None
     """The date and time the pull request was closed."""
 
     comments: int
@@ -626,7 +626,7 @@ class PullRequest(TypedDict):
     issue_url: str
     """The API URL to the issue associated with the pull request."""
 
-    labels: List[Label]
+    labels: list[Label]
     """The labels associated with the pull request."""
 
     locked: bool
@@ -635,10 +635,10 @@ class PullRequest(TypedDict):
     maintainer_can_modify: bool
     """Whether the maintainer can modify the pull request."""
 
-    merge_commit_sha: Optional[str]
+    merge_commit_sha: str | None
     """The SHA of the merge commit."""
 
-    mergeable: Optional[bool]
+    mergeable: bool | None
     """Whether the pull request is mergeable."""
 
     mergeable_state: MergeableStateStatus
@@ -647,13 +647,13 @@ class PullRequest(TypedDict):
     merged: bool
     """Whether the pull request has been merged."""
 
-    merged_at: Optional[str]  # datetime
+    merged_at: str | None  # datetime
     """The date and time the pull request was merged."""
 
-    merged_by: Optional[User]
+    merged_by: User | None
     """The user who merged the pull request."""
 
-    milestone: Optional[Milestone]
+    milestone: Milestone | None
     """The milestone associated with the pull request."""
 
     node_id: str
@@ -665,13 +665,13 @@ class PullRequest(TypedDict):
     patch_url: str
     """The URL to the patch of the pull request."""
 
-    rebaseable: Optional[bool]
+    rebaseable: bool | None
     """Whether the pull request is rebaseable."""
 
-    requested_reviewers: List[User]
+    requested_reviewers: list[User]
     """The users who have requested reviews on the pull request."""
 
-    requested_teams: List[Team]
+    requested_teams: list[Team]
     """The teams who have requested reviews on the pull request."""
 
     review_comment_url: str
@@ -748,4 +748,4 @@ class PullRequestCommentEvent(TypedDict):
     """The GitHub user that triggered the event."""
 
 
-Event = Union[PullRequestEvent, PullRequestCommentEvent]
+Event = PullRequestEvent | PullRequestCommentEvent
