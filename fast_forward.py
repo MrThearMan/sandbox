@@ -24,8 +24,6 @@ def main(*, github_token: str, event_path: str) -> int:
     with open(event_path, encoding="utf-8") as f:
         data: Event = json.load(f)
 
-    print(f"data: {data}")
-
     if is_pr_created(data):
         pr = data["pull_request"]
         print(f"base_re: {pr}")
