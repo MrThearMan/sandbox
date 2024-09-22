@@ -30,6 +30,7 @@ if __name__ == "__main__":
 
     finally:
         # Add job summary for the GitHub Actions run
-        os.environ["GITHUB_STEP_SUMMARY"] = str(SUMMARY.seek(0).read())
+        SUMMARY.seek(0)
+        os.environ["GITHUB_STEP_SUMMARY"] = str(SUMMARY.read())
 
     raise SystemExit(exit_code)
