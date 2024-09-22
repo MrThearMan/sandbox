@@ -24,6 +24,9 @@ def fast_forward_pull_request(*, pull_request_url: str, permissions_url: str) ->
         validate_fast_forward(base_sha=pull_request.base_head_sha, head_sha=pull_request.pr_head_sha)
         push_branch_to_ref(branch_name=pull_request.base_branch_name, commit_sha=pull_request.pr_head_sha)
 
+        # TODO: Trigger another workflow after merging:
+        #  https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#repository_dispatch
+
     except Exception as error:
         post_error_comment(error=str(error), comments_url=pull_request.comments_url)
         raise
