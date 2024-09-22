@@ -118,3 +118,20 @@ def validate_fast_forward(*, base_sha: str, head_sha: str) -> None:
         raise PullRequestFastForwardError(msg)
 
     logger.info("Fast forwarding is possible.")
+
+
+def push_branch_to_ref(*, branch: str, sha: str) -> None:
+    """
+    Pushes the specified branch to the specified SHA by fast-forwarding.
+
+    :param branch: The branch to fast-forward.
+    :param sha: The commit SHA to push to the head of the branch.
+    """
+    logger.info("Pushing branch to ref by fast-forwarding...")
+
+    result = run_command(f"git push origin {sha}:{branch}", directory=constants.REPO_PATH)
+    if result.exit_code != 0:
+        msg = f"Could not fast forward '{branch}' to '{sha}'. Error: {result.err}"
+        raise PullRequestFastForwardError(msg)
+
+    logger.info("Fast-forwarding done.")
