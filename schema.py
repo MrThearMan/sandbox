@@ -1,11 +1,5 @@
 from typing import Literal, TypedDict
 
-__all__ = [
-    "PullRequestEvent",
-    "IssueCommentEvent",
-]
-
-
 AuthorAccociation = Literal[
     "COLLABORATOR",  # Author has been invited to collaborate on the repository.
     "CONTRIBUTOR",  # Author has previously committed to the repository.
@@ -771,14 +765,19 @@ class Permission(TypedDict):
     """Whether the user has admin permissions."""
 
 
-class UserPermission(TypedDict):
+class UserWithPermission(User):
     permission: Permission
+    """Which permissions the user has."""
+
+
+class UserPermission(TypedDict):
+    permission: Literal["pull", "triage", "push", "maintain", "admin"]
     """The permission level of the user."""
 
     role_name: Literal["admin", "write", "read", "none"]
     """The role of the user."""
 
-    user: User
+    user: UserWithPermission
     """The user who has the permission."""
 
 
@@ -874,28 +873,6 @@ class Issue(TypedDict):
     """The user who opened the pull request."""
 
 
-class PullRequestEvent(TypedDict):
-    """Payload for GitHub event that occurs for a pull request.
-
-    ref: https://docs.github.com/en/webhooks/webhook-events-and-payloads?actionType=opened#pull_request
-    """
-
-    action: PullRequestEventAction
-    """The action that was performed."""
-
-    number: int
-    """The pull request number."""
-
-    pull_request: PullRequest
-    """The pull request accociated with the event."""
-
-    repository: Repository
-    """The repository on GitHub where the event occurred. """
-
-    sender: User
-    """The GitHub user that triggered the event."""
-
-
 class IssueCommentEvent(TypedDict):
     """Payload for GitHub event for a pull request comment.
 
@@ -918,6 +895,3 @@ class IssueCommentEvent(TypedDict):
 
     sender: User
     """The GitHub user that triggered the event."""
-
-
-Event = PullRequestEvent | IssueCommentEvent

@@ -1,5 +1,6 @@
 import json
 import http.client
+import logging
 import os
 import urllib.parse
 from argparse import ArgumentParser
@@ -10,6 +11,10 @@ from schema import IssueCommentEvent, PullRequest, UserPermission
 # https://github.com/sequoia-pgp/fast-forward/blob/main/.github/workflows/fast-forward.yml
 # https://github.com/sequoia-pgp/fast-forward/blob/main/action.yml
 # https://github.com/sequoia-pgp/fast-forward/blob/main/src/fast-forward.sh
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
@@ -29,49 +34,58 @@ def request(connection: http.client.HTTPSConnection, *, url: str) -> str | None:
     content = response.read().decode()
 
     if response.status != 200:
-        print(f"Unexpected status code: {response.status}: {content}")
+        logger.error(f"Unexpected status code: {response.status}: {content}")
         return None
 
     return content
 
 
 def main(*, event_path: str, connection: http.client.HTTPSConnection) -> int:
-    print("Loading event...")
+    logger.info(f"Loading github event from '{event_path}'...")
+
     with open(event_path, encoding="utf-8") as f:
         data: IssueCommentEvent = json.load(f)
 
-    print("Getting pull request data...")
+    logger.info("Getting pull request data...")
+
     response = request(connection, url=data["issue"]["pull_request"]["url"])
     if not response:
-        print("Could not get pull request")
+        logger.error("Could not get pull request")
         return 1
+    else:
+        logger.info("Pull request data received.")
 
     pull_request: PullRequest = json.loads(response)
 
-    print("Cloning pull request repo...")
     clone_url = pull_request["base"]["repo"]["clone_url"]
     credentials = f"url={clone_url}\nusername={GITHUB_ACTOR}\npassword={GITHUB_TOKEN}"
 
-    print("Setting git credential helper to store...")
+    logger.info("Setting git credential helper to store...")
+
     result = run_command("git config --global credential.helper store")
     if result.exit_code != 0:
-        print(f"Could not set git credential helper to store. Error: {result.err}")
+        logger.error(f"Could not set git credential helper to store. Error: {result.err}")
         return 1
+    else:
+        logger.info("Git credential helper set.")
 
-    print("Approving git credentials...")
+    logger.info("Approving git credentials...")
+
     result = run_command(f'echo -e "{credentials}" | git credential approve')
     if result.exit_code != 0:
-        print(f"Could not approve git credentials. Error: {result.err}")
+        logger.error(f"Could not approve git credentials. Error: {result.err}")
         return 1
+    else:
+        logger.info("Git credentials approved.")
 
     base_ref = pull_request["base"]["ref"]
     pr_ref = pull_request["head"]["ref"]
     pr_sha = pull_request["head"]["sha"]
 
-    print(f"Base Ref: {base_ref}")
-    print(f"Original Base Ref: {pull_request['base']['sha']}")
-    print(f"PR Ref: {pr_ref}")
-    print(f"PR SHA: {pr_sha}")
+    logger.info(f"Base Ref: {base_ref}")
+    logger.info(f"Original Base Ref: {pull_request['base']['sha']}")
+    logger.info(f"PR Ref: {pr_ref}")
+    logger.info(f"PR SHA: {pr_sha}")
 
     # 'pull_request["base"]["sha"]' is from the time when the PR was created.
     # See. https://github.com/orgs/community/discussions/59677
@@ -79,65 +93,87 @@ def main(*, event_path: str, connection: http.client.HTTPSConnection) -> int:
 
     clone_path = "./clone"
 
-    print("Configuring clone url...")  # TODO: Check is necessary?
+    logger.info("Configuring clone url...")  # TODO: Check is necessary?
+
     clone_url_parts = urllib.parse.urlparse(clone_url)._asdict()
     clone_url_parts["netloc"] = f"{GITHUB_ACTOR}@{clone_url_parts['netloc']}"
     auth_clone_url = urllib.parse.urlunparse(clone_url_parts.values())
 
-    print(f"Cloning {clone_url}:{base_ref} to {clone_path}...")
+    logger.info(f"Cloning {clone_url}:{base_ref} to {clone_path}...")
+
     result = run_command(f"git clone --quiet --single-branch --branch {base_ref} {auth_clone_url} {clone_path}")
     if result.exit_code != 0:
-        print(f"Could not clone base ref. Error: {result.err}")
+        logger.error(f"Could not clone base ref. Error: {result.err}")
         return 1
+    else:
+        logger.info("Base ref cloned.")
 
-    print(f"Fetching {clone_url}:{pr_ref} to {clone_path}...")
+    logger.info(f"Fetching {clone_url}:{pr_ref} to {clone_path}...")
+
     result = run_command(f"git fetch --quiet {auth_clone_url} {pr_ref}", directory=clone_path)
     if result.exit_code != 0:
-        print(f"Could not fetch pull request ref. Error: {result.err}")
+        logger.error(f"Could not fetch pull request ref. Error: {result.err}")
         return 1
+    else:
+        logger.info("Pull request ref fetched.")
 
-    print(f"Add '{pr_sha}' to a new branch '{pr_ref}', removing it from a detached state...")
+    # Adding the commit to a branch removes it from a detached state
+    logger.info(f"Add '{pr_sha}' to a new branch '{pr_ref}'...")
+
     result = run_command(f"git branch -f {pr_ref} {pr_sha}", directory=clone_path)
     if result.exit_code != 0:
-        print(f"Could not add commit to branch. Error: {result.err}")
+        logger.error(f"Could not add commit to branch. Error: {result.err}")
         return 1
+    else:
+        logger.info("Commit added to branch.")
 
-    print("Finding base ref...")
+    logger.info("Finding base ref...")
+
     result = run_command(f"git rev-parse origin/{base_ref}", directory=clone_path)
     if result.err is not None:
-        print(f"Could not find base ref. Error: {result.err}")
+        logger.error(f"Could not find base ref. Error: {result.err}")
         return 1
+    else:
+        logger.info("Base ref found.")
 
     base_sha = result.out
 
-    print(f"Current Base SHA: {base_sha}")
+    logger.info(f"Current Base SHA: {base_sha}")
 
-    print("Checking if can fast forward...")
+    logger.info("Checking if can fast forward...")
     result = run_command(f"git merge-base --is-ancestor {base_sha} {pr_sha}", directory=clone_path)
     if result.exit_code != 0:
-        print(f"Cannot fast forward base {base_sha[:7]} to head {pr_sha[:7]}. Error: {result.err}")
+        logger.error(f"Cannot fast forward base {base_sha[:7]} to head {pr_sha[:7]}. Error: {result.err}")
         return 1
+    else:
+        logger.info("Can fast forward.")
 
-    print("Formatting permissions url...")
+    logger.info("Formatting permissions url...")
+
     username = data["sender"]["login"]
     collaborators_url = data["repository"]["collaborators_url"].format(**{"/collaborator": f"/{username}"})
     permissions_url = f"{collaborators_url}/permission"
 
-    print("Checking permissions for pushing...")
+    logger.info("Fetching user permissions...")
+
     response = request(connection, url=permissions_url)
     if not response:
-        print("Could not get user permissions")
+        logger.error(f"Could not get permissions for user {username}")
         return 1
+    else:
+        logger.info("Permissions received.")
 
     permissions: UserPermission = json.loads(response)
 
-    print(f"Permissions: {permissions}")
+    logger.info("Checking permissions for pushing...")
 
-    if permissions["permission"]["pull"] is False:
-        print(f"User '{username}' does not have permissions for merging.")
+    if permissions["user"]["permission"]["push"] is False:
+        logger.error(f"User '{username}' does not have permissions for merging.")
         return 1
+    else:
+        logger.info(f"User '{username}' has permissions for merging.")
 
-    print("Fast-forwarding...")
+    logger.info("Fast-forwarding...")
 
     return 0
 
