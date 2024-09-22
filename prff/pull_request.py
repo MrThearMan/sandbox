@@ -73,7 +73,7 @@ class PullRequestData:
     @staticmethod
     def add_actor_to_clone_url(*, url: str) -> str:
         clone_url_parts = urllib.parse.urlparse(url)._asdict()
-        clone_url_parts["netloc"] = f"{constants.GITHUB_ACTOR}@{clone_url_parts['netloc']}"
+        clone_url_parts["netloc"] = f"{constants.GITHUB_ACTOR}:{constants.GITHUB_TOKEN}@{clone_url_parts['netloc']}"
         return urllib.parse.urlunparse(clone_url_parts.values())  # type: ignore[return-value]
 
     def fix_base_sha(self) -> None:

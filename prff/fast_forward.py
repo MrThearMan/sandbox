@@ -18,6 +18,9 @@ __all__ = [
 
 
 def fast_forward_pull_request(*, pull_request_url: str, permissions_url: str) -> None:
+    permissions = fetch_user_permissions(permissions_url=permissions_url)
+    validate_push_permissions(permissions=permissions)
+
     pull_request = PullRequestData.from_github(url=pull_request_url)
 
     set_git_credential_helper_to_store()
@@ -32,9 +35,6 @@ def fast_forward_pull_request(*, pull_request_url: str, permissions_url: str) ->
     pull_request.fix_base_sha()
 
     validate_fast_forward(base_sha=pull_request.base_head_sha, head_sha=pull_request.pr_head_sha)
-
-    permissions = fetch_user_permissions(permissions_url=permissions_url)
-    validate_push_permissions(permissions=permissions)
 
     push_branch_to_ref(branch_name=pull_request.base_branch_name, commit_sha=pull_request.pr_head_sha)
 

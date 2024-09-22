@@ -128,6 +128,9 @@ def push_branch_to_ref(*, branch_name: str, commit_sha: str) -> None:
     Pushes the specified branch to the specified SHA by fast-forwarding.
     Operation is performed in the 'REPO_PATH'.
 
+    Note: Since we are using the 'GITHUB_TOKEN', push doesn't trigger additional workflows.
+    https://docs.github.com/actions/security-for-github-actions/security-guides/automatic-token-authentication
+
     :param branch_name: The branch to fast-forward.
     :param commit_sha: The commit SHA to push to the head of the branch.
     """
