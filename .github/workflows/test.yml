@@ -10,7 +10,7 @@ jobs:
   test:
 
     permissions:
-      contents: read  # Allows reading repo to check if fast-forwarding is possible.
+      contents: write  # Allows merging the PR.
       pull-requests: write  # Writing comments on PRs.
       issues: write  # Also required for posting comments on PRs.
 
