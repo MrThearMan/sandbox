@@ -65,6 +65,13 @@ def main(*, event_path: str, connection: http.client.HTTPSConnection) -> int:
         return 1
 
     base_ref = pull_request["base"]["ref"]
+    pr_ref = pull_request["head"]["ref"]
+    pr_sha = pull_request["head"]["sha"]
+
+    print(f"Base Ref: {base_ref}")
+    print(f"Original Base Ref: {pull_request['base']['sha']}")
+    print(f"PR Ref: {pr_ref}")
+    print(f"PR SHA: {pr_sha}")
 
     # 'pull_request["base"]["sha"]' is from the time when the PR was created.
     # See. https://github.com/orgs/community/discussions/59677
@@ -72,7 +79,7 @@ def main(*, event_path: str, connection: http.client.HTTPSConnection) -> int:
 
     clone_path = "./clone"
 
-    print("Configuring clone url...")
+    print("Configuring clone url...")  # TODO: Check is necessary?
     clone_url_parts = urllib.parse.urlparse(clone_url)._asdict()
     clone_url_parts["netloc"] = f"{GITHUB_ACTOR}@{clone_url_parts['netloc']}"
     auth_clone_url = urllib.parse.urlunparse(clone_url_parts.values())
@@ -83,6 +90,18 @@ def main(*, event_path: str, connection: http.client.HTTPSConnection) -> int:
         print(f"Could not clone base ref. Error: {result.err}")
         return 1
 
+    print(f"Fetching {clone_url}:{pr_ref} to {clone_path}...")
+    result = run_command(f"git fetch --quiet {auth_clone_url} {pr_ref}", directory=clone_path)
+    if result.exit_code != 0:
+        print(f"Could not fetch pull request ref. Error: {result.err}")
+        return 1
+
+    print(f"Add '{pr_sha}' to a new branch '{pr_ref}', removing it from a detached state...")
+    result = run_command(f"git branch -f {pr_ref} {pr_sha}", directory=clone_path)
+    if result.exit_code != 0:
+        print(f"Could not add commit to branch. Error: {result.err}")
+        return 1
+
     print("Finding base ref...")
     result = run_command(f"git rev-parse origin/{base_ref}", directory=clone_path)
     if result.err is not None:
@@ -90,15 +109,13 @@ def main(*, event_path: str, connection: http.client.HTTPSConnection) -> int:
         return 1
 
     base_sha = result.out
-    head_sha = pull_request["head"]["sha"]
 
-    print(f"Base SHA: {base_sha}")
-    print(f"Head SHA: {head_sha}")
+    print(f"Current Base SHA: {base_sha}")
 
     print("Checking if can fast forward...")
-    result = run_command(f"git merge-base --is-ancestor {base_sha} {head_sha}", directory=clone_path)
+    result = run_command(f"git merge-base --is-ancestor {base_sha} {pr_sha}", directory=clone_path)
     if result.exit_code != 0:
-        print(f"Cannot fast forward base {base_sha[:7]} to head {head_sha[:7]}. Error: {result.err}")
+        print(f"Cannot fast forward base {base_sha[:7]} to head {pr_sha[:7]}. Error: {result.err}")
         return 1
 
     print("Formatting permissions url...")
@@ -117,7 +134,7 @@ def main(*, event_path: str, connection: http.client.HTTPSConnection) -> int:
     print(f"Permissions: {permissions}")
 
     if permissions["permission"]["pull"] is False:
-        print(f"User {username} does not have permissions for merging.")
+        print(f"User '{username}' does not have permissions for merging.")
         return 1
 
     print("Fast-forwarding...")
@@ -138,4 +155,3 @@ if __name__ == "__main__":
         connection.close()
 
     raise SystemExit(return_value)
-
