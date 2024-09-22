@@ -26,7 +26,9 @@ def clone_repo_at_ref(*, repo_url: str, branch_name: str) -> None:
 
     result = run_command(f"git clone --quiet --single-branch --branch {branch_name} {repo_url} {constants.REPO_PATH}")
     if result.exit_code != 0:
-        msg = f"Could not clone base ref. Error: {result.err}"
+        msg = "Could not clone base ref."
+        if result.err:
+            msg += f" Error: {result.err}"
         raise PullRequestFastForwardError(msg)
 
     logger.info("Repo cloned.")
@@ -44,7 +46,9 @@ def fetch_ref(*, repo_url: str, commit_sha: str) -> None:
 
     result = run_command(f"git fetch --quiet {repo_url} {commit_sha}", directory=constants.REPO_PATH)
     if result.exit_code != 0:
-        msg = f"Could not fetch pull request ref. Error: {result.err}"
+        msg = "Could not fetch pull request ref."
+        if result.err:
+            msg += f" Error: {result.err}"
         raise PullRequestFastForwardError(msg)
 
     logger.info("Ref fetched.")
@@ -64,7 +68,9 @@ def create_branch(*, branch_name: str, commit_sha: str) -> None:
 
     result = run_command(f"git branch -f {branch_name} {commit_sha}", directory=constants.REPO_PATH)
     if result.exit_code != 0:
-        msg = f"Could not add commit to branch. Error: {result.err}"
+        msg = "Could not add commit to branch."
+        if result.err:
+            msg += f" Error: {result.err}"
         raise PullRequestFastForwardError(msg)
 
     logger.info("Branch created.")
@@ -82,7 +88,9 @@ def validate_fast_forward(*, base_sha: str, head_sha: str) -> None:
 
     result = run_command(f"git merge-base --is-ancestor {base_sha} {head_sha}", directory=constants.REPO_PATH)
     if result.exit_code != 0:
-        msg = f"Cannot fast forward `{base_sha[:7]}` to `{head_sha[:7]}`. Error: {result.err}"
+        msg = f"Cannot fast forward `{base_sha[:7]}` to `{head_sha[:7]}`."
+        if result.err:
+            msg += f" Error: {result.err}"
         raise PullRequestFastForwardError(msg)
 
     logger.info("Fast forwarding is possible.")
@@ -103,7 +111,9 @@ def push_branch_to_ref(*, branch_name: str, commit_sha: str) -> None:
 
     result = run_command(f"git push origin {commit_sha}:{branch_name}", directory=constants.REPO_PATH)
     if result.exit_code != 0:
-        msg = f"Could not fast forward `{branch_name}` to `{commit_sha}`. Error: {result.err}"
+        msg = f"Could not fast forward `{branch_name}` to `{commit_sha}`."
+        if result.err:
+            msg += f" Error: {result.err}"
         raise PullRequestFastForwardError(msg)
 
     logger.info("Push successful.")

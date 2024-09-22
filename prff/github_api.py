@@ -3,6 +3,7 @@ from __future__ import annotations
 import http.client
 import json
 import urllib.parse
+from dataclasses import dataclass
 from inspect import cleandoc
 from typing import TYPE_CHECKING, Any
 
@@ -14,6 +15,7 @@ if TYPE_CHECKING:
     from prff.github_schema import PullRequest, UserPermission
 
 __all__ = [
+    "add_rocket_reaction",
     "fetch_pull_request",
     "fetch_user_permissions",
     "post_error_comment",
@@ -29,7 +31,17 @@ _GITHUB_API_HEADERS = {
 }
 
 
-def get_request(*, url: str) -> dict[str, Any] | None:
+@dataclass
+class HttpResponse:
+    status: int
+    data: dict[str, Any]
+
+    @property
+    def is_success(self) -> bool:
+        return 200 <= self.status < 300  # noqa: PLR2004
+
+
+def get_request(*, url: str) -> HttpResponse:
     url_parts = urllib.parse.urlparse(url)
 
     connection = http.client.HTTPSConnection(url_parts.netloc)
@@ -43,18 +55,16 @@ def get_request(*, url: str) -> dict[str, Any] | None:
     finally:
         connection.close()
 
-    if not (200 <= response.status < 300):  # noqa: PLR2004
-        logger.error(f"Unexpected status code (`{response.status}`): {content}")
-        return None
-
     try:
-        return json.loads(content)
-    except Exception as error:  # noqa: BLE001
-        logger.error(f"Could not decode JSON response: {error}")
-        return None
+        response_data = json.loads(content)
+    except Exception as error:
+        msg = f"Could not decode JSON response: {error}. Content: {content}"
+        raise PullRequestFastForwardError(msg) from error
+
+    return HttpResponse(status=response.status, data=response_data)
 
 
-def post_request(*, url: str, data: dict[str, Any]) -> dict[str, Any] | None:
+def post_request(*, url: str, data: dict[str, Any]) -> HttpResponse:
     url_parts = urllib.parse.urlparse(url)
 
     connection = http.client.HTTPSConnection(url_parts.netloc)
@@ -71,39 +81,37 @@ def post_request(*, url: str, data: dict[str, Any]) -> dict[str, Any] | None:
     finally:
         connection.close()
 
-    if not (200 <= response.status < 300):  # noqa: PLR2004
-        logger.error(f"Unexpected status code (`{response.status}`): {content}")
-        return None
-
     try:
-        return json.loads(content)
-    except Exception as error:  # noqa: BLE001
-        logger.error(f"Could not decode JSON response: {error}")
-        return None
+        response_data = json.loads(content)
+    except Exception as error:
+        msg = f"Could not decode JSON response: {error}. Content: {content}"
+        raise PullRequestFastForwardError(msg) from error
+
+    return HttpResponse(status=response.status, data=response_data)
 
 
 def fetch_pull_request(*, url: str) -> PullRequest:
     logger.info("Fetching pull request data from GitHub...")
 
-    response: PullRequest | None = get_request(url=url)
-    if not response:
-        msg = "Could not get pull request"
+    response = get_request(url=url)
+    if not response.is_success:
+        msg = f"[`{response.status}`] Could not get pull request: {response.data}"
         raise PullRequestFastForwardError(msg)
 
     logger.info("Pull request data received.")
-    return response
+    return response.data
 
 
 def fetch_user_permissions(permissions_url: str) -> UserPermission:
     logger.info("Fetching user permissions...")
 
     response = get_request(url=permissions_url)
-    if not response:
-        msg = "Could not get permissions"
+    if not response.is_success:
+        msg = f"[`{response.status}`] Could not get permissions: {response.data}"
         raise PullRequestFastForwardError(msg)
 
     logger.info("Permissions received.")
-    return response
+    return response.data
 
 
 def validate_push_permissions(*, permissions: UserPermission) -> None:
@@ -128,8 +136,9 @@ def post_error_comment(*, error: str, comments_url: str) -> None:
         )
     }
     response = post_request(url=comments_url, data=data)
-    if not response:
-        logger.error("Could not post comment to pull request")
+    if not response.is_success:
+        msg = f"[`{response.status}`] Could not post comment to pull request: {response.data}"
+        logger.error(msg)
 
 
 def add_rocket_reaction(reactions_url: str) -> None:
@@ -137,5 +146,6 @@ def add_rocket_reaction(reactions_url: str) -> None:
         "content": "rocket",
     }
     response = post_request(url=reactions_url, data=data)
-    if not response:
-        logger.error("Could not add rocket reaction to comment")
+    if not response.is_success:
+        msg = f"[`{response.status}`] Could not add rocket reaction to comment: {response.data}"
+        logger.error(msg)
