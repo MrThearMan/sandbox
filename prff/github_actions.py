@@ -2,7 +2,7 @@ import json
 import os
 from typing import TYPE_CHECKING
 
-from prff.logging import logger
+from prff.logging import SUMMARY, logger
 
 if TYPE_CHECKING:
     from prff.github_schema import IssueCommentEvent
@@ -31,3 +31,10 @@ def load_urls_from_event() -> tuple[str, str]:
     logger.info("URLs parsed.")
 
     return pull_request_url, permissions_url
+
+
+def write_job_summary() -> None:
+    SUMMARY.seek(0)
+    summary = str(SUMMARY.read())
+    with open(os.environ["GITHUB_STEP_SUMMARY"], "w") as summary_file:  # noqa: PTH123
+        summary_file.write(summary)

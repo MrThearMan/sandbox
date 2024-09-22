@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 
-import os
 from argparse import ArgumentParser
 
 from prff.exception import PullRequestFastForwardError
 from prff.fast_forward import fast_forward_pull_request
-from prff.github_event import load_urls_from_event
-from prff.logging import SUMMARY, logger
+from prff.github_actions import load_urls_from_event, write_job_summary
+from prff.logging import logger
 
 if __name__ == "__main__":
     argparser = ArgumentParser()
@@ -29,8 +28,6 @@ if __name__ == "__main__":
         exit_code = 1
 
     finally:
-        # Add job summary for the GitHub Actions run
-        SUMMARY.seek(0)
-        os.environ["GITHUB_STEP_SUMMARY"] = str(SUMMARY.read())
+        write_job_summary()
 
     raise SystemExit(exit_code)
