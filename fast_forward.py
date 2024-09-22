@@ -1,15 +1,13 @@
 import json
+import sys
 import http.client
-import logging
 import os
 import urllib.parse
 from argparse import ArgumentParser
 
 from command import run_command
+from log import logger
 from schema import IssueCommentEvent, PullRequest, UserPermission
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
@@ -169,6 +167,7 @@ def main(*, event_path: str, connection: http.client.HTTPSConnection) -> int:
         logger.info(f"User '{username}' has permissions for merging.")
 
     logger.info("Fast-forwarding...")
+    sys.stdout.flush()
 
     return 0
 
