@@ -8,11 +8,6 @@ from argparse import ArgumentParser
 from command import run_command
 from schema import IssueCommentEvent, PullRequest, UserPermission
 
-# https://github.com/sequoia-pgp/fast-forward/blob/main/.github/workflows/fast-forward.yml
-# https://github.com/sequoia-pgp/fast-forward/blob/main/action.yml
-# https://github.com/sequoia-pgp/fast-forward/blob/main/src/fast-forward.sh
-
-
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
