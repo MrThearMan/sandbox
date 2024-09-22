@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 import logging
 import sys
 from typing import Any
 
-
-__all__ = ["logger"]
+__all__ = [
+    "logger",
+]
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

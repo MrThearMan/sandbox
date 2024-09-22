@@ -2,6 +2,11 @@ name: Fast-forward merge pull request
 
 on:
   workflow_call:
+    inputs:
+      log_level:
+        description: Log level. One of 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'
+        type: string
+        default: 'INFO'
 
 jobs:
   test:
@@ -23,6 +28,7 @@ jobs:
           PYTHONFAULTHANDLER: "1"
           PYTHONENCODING: "utf-8"
         run: |
-          python ${{ github.workspace }}/fast_forward.py \
-            --event-path '${{ github.event_path }}'
+          python ${{ github.workspace }}/main.py \
+            --event-path '${{ github.event_path }}' \
+            --log-level '${{ inputs.log_level }}'
         shell: bash

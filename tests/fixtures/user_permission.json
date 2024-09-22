@@ -27,6 +27,6 @@
         "starred_url": "https://api.github.com/users/MrThearMan/starred{/owner}{/repo}",
         "subscriptions_url": "https://api.github.com/users/MrThearMan/subscriptions",
         "type": "User",
-        "url": "https://api.github.com/users/MrThearMan",
+        "url": "https://api.github.com/users/MrThearMan"
     }
 }

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Literal, TypedDict
 
 AuthorAccociation = Literal[
@@ -874,7 +876,8 @@ class Issue(TypedDict):
 
 
 class IssueCommentEvent(TypedDict):
-    """Payload for GitHub event for a pull request comment.
+    """
+    Payload for GitHub event for a pull request comment.
 
     Note: GitHub considers every pull request an issue.
 
