@@ -18,9 +18,10 @@ __all__ = [
 
 @dataclass
 class PullRequestData:
-    clone_url: str
+    base_clone_url: str
     base_ref: str
     base_sha: str
+    head_clone_url: str
     head_ref: str
     head_sha: str
 
@@ -37,9 +38,10 @@ class PullRequestData:
         logger.info("Parsing pull request data...")
 
         info = PullRequestData(
-            clone_url=response["base"]["repo"]["clone_url"],
+            base_clone_url=response["base"]["repo"]["clone_url"],
             base_ref=response["base"]["ref"],
             base_sha=response["base"]["sha"],
+            head_clone_url=response["head"]["repo"]["clone_url"],
             head_ref=response["head"]["ref"],
             head_sha=response["head"]["sha"],
         )

@@ -92,9 +92,9 @@ def create_branch(*, name: str, sha: str) -> None:
     :param name: The name of the new branch.
     :param sha: The commit SHA to create the branch from.
     """
-    logger.info(f"Create a new branch '{name}' at '{sha[:7]}'...")
+    logger.info(f"Create a new branch 'pull_request/{name}' at '{sha[:7]}'...")
 
-    result = run_command(f"git branch -f {name} {sha}", directory=constants.REPO_PATH)
+    result = run_command(f"git branch -f pull_request/{name} {sha}", directory=constants.REPO_PATH)
     if result.exit_code != 0:
         msg = f"Could not add commit to branch. Error: {result.err}"
         raise RuntimeError(msg)

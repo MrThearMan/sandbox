@@ -22,10 +22,10 @@ def fast_forward_pull_request(*, pull_request_url: str, permissions_url: str) ->
     pull_request = PullRequestData.from_github(url=pull_request_url)
 
     set_git_credential_helper_to_store()
-    approve_git_credentials(clone_url=pull_request.clone_url)
+    approve_git_credentials(clone_url=pull_request.base_clone_url)
 
-    clone_repo_at_ref(clone_url=pull_request.clone_url, ref=pull_request.base_ref)
-    fetch_ref(clone_url=pull_request.clone_url, ref=pull_request.head_ref)
+    clone_repo_at_ref(clone_url=pull_request.base_clone_url, ref=pull_request.base_ref)
+    fetch_ref(clone_url=pull_request.head_clone_url, ref=pull_request.head_ref)
     create_branch(name=pull_request.head_ref, sha=pull_request.head_sha)
 
     pull_request.fix_base_sha()
