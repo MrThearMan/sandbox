@@ -19,14 +19,14 @@ def set_git_credential_helper_to_store() -> None:
     Sets the git credential.helper to use the on-disk store.
     See: https://git-scm.com/docs/git-credential-store
     """
-    logger.info("Configure git credential.helper to use on-disk store...")
+    logger.info("Configure git 'credential.helper' to use on-disk store...")
 
     result = run_command("git config --global credential.helper store")
     if result.exit_code != 0:
-        msg = f"Could not set git credential helper to store. Error: {result.err}"
+        msg = f"Could not set git 'credential.helper' to store. Error: {result.err}"
         raise RuntimeError(msg)
 
-    logger.info("Git credential.helper set.")
+    logger.info("Git 'credential.helper' set.")
 
 
 def approve_git_credentials(*, clone_url: str) -> None:
@@ -56,14 +56,14 @@ def clone_repo_at_ref(*, clone_url: str, ref: str) -> None:
     :param clone_url: The URL of the repository to clone.
     :param ref: The reference to clone.
     """
-    logger.info(f"Cloning {clone_url}:{ref} to {constants.REPO_PATH}...")
+    logger.info(f"Cloning '{ref}' from '{clone_url}'...")
 
     result = run_command(f"git clone --quiet --single-branch --branch {ref} {clone_url} {constants.REPO_PATH}")
     if result.exit_code != 0:
         msg = f"Could not clone base ref. Error: {result.err}"
         raise RuntimeError(msg)
 
-    logger.info("Base ref cloned.")
+    logger.info("Repo cloned.")
 
 
 def fetch_ref(*, clone_url: str, ref: str) -> None:
@@ -73,14 +73,14 @@ def fetch_ref(*, clone_url: str, ref: str) -> None:
     :param clone_url: The URL of the repository to fetch from.
     :param ref: The reference to fetch.
     """
-    logger.info(f"Fetching {clone_url}:{ref} to {constants.REPO_PATH}...")
+    logger.info(f"Fetching '{ref}' from '{clone_url}'...")
 
     result = run_command(f"git fetch --quiet {clone_url} {ref}", directory=constants.REPO_PATH)
     if result.exit_code != 0:
         msg = f"Could not fetch pull request ref. Error: {result.err}"
         raise RuntimeError(msg)
 
-    logger.info("Pull request ref fetched.")
+    logger.info("Ref fetched.")
 
 
 def create_branch(*, name: str, sha: str) -> None:
@@ -109,7 +109,7 @@ def validate_fast_forward(*, base_sha: str, head_sha: str) -> None:
     :param base_sha: The base SHA to check.
     :param head_sha: The head SHA to check.
     """
-    logger.info(f"Checking if {base_sha[:7]} can fast forwarded to {head_sha[:7]}...")
+    logger.info(f"Checking if '{base_sha[:7]}' can fast forwarded to '{head_sha[:7]}'...")
 
     result = run_command(f"git merge-base --is-ancestor {base_sha} {head_sha}", directory=constants.REPO_PATH)
     if result.exit_code != 0:
