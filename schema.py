@@ -766,7 +766,7 @@ class Permission(TypedDict):
 
 
 class UserWithPermission(User):
-    permission: Permission
+    permissions: Permission
     """Which permissions the user has."""
 
 

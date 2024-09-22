@@ -167,7 +167,7 @@ def main(*, event_path: str, connection: http.client.HTTPSConnection) -> int:
 
     logger.info("Checking permissions for pushing...")
 
-    if permissions["user"]["permission"]["push"] is False:
+    if permissions["user"]["permissions"]["push"] is False:
         logger.error(f"User '{username}' does not have permissions for merging.")
         return 1
     else:
