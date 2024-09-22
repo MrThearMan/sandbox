@@ -25,8 +25,8 @@ def fast_forward_pull_request(*, pull_request_url: str, permissions_url: str) ->
     if pull_request.pr_clone_url != pull_request.base_clone_url:
         approve_git_credentials(repo_url=pull_request.pr_clone_url)
 
-    clone_repo_at_ref(repo_url=pull_request.base_clone_url, branch_name=pull_request.base_branch_name)
-    fetch_ref(repo_url=pull_request.pr_clone_url, commit_sha=pull_request.pr_head_sha)
+    clone_repo_at_ref(repo_url=pull_request.auth_base_clone_url, branch_name=pull_request.base_branch_name)
+    fetch_ref(repo_url=pull_request.auth_pr_clone_url, commit_sha=pull_request.pr_head_sha)
     create_branch(branch_name=pull_request.pr_branch_name, commit_sha=pull_request.pr_head_sha)
 
     pull_request.fix_base_sha()

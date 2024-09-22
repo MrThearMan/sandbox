@@ -51,16 +51,24 @@ class PullRequestData:
         logger.info("Parsing pull request data...")
 
         info = PullRequestData(
-            base_clone_url=cls.add_actor_to_clone_url(url=response["base"]["repo"]["clone_url"]),
+            base_clone_url=response["base"]["repo"]["clone_url"],
             base_branch_name=response["base"]["ref"],
             base_head_sha=response["base"]["sha"],
-            pr_clone_url=cls.add_actor_to_clone_url(url=response["head"]["repo"]["clone_url"]),
+            pr_clone_url=response["head"]["repo"]["clone_url"],
             pr_branch_name=response["head"]["ref"],
             pr_head_sha=response["head"]["sha"],
         )
 
         logger.info("Pull request data parsed.")
         return info
+
+    @property
+    def auth_base_clone_url(self) -> str:
+        return self.add_actor_to_clone_url(url=self.base_clone_url)
+
+    @property
+    def auth_pr_clone_url(self) -> str:
+        return self.add_actor_to_clone_url(url=self.pr_clone_url)
 
     @staticmethod
     def add_actor_to_clone_url(*, url: str) -> str:

@@ -38,7 +38,7 @@ def approve_git_credentials(*, repo_url: str) -> None:
     """
     logger.info("Approving git credentials...")
 
-    credentials = f"url={repo_url}\nusername={constants.GITHUB_ACTOR}\npassword={constants.GITHUB_TOKEN}"
+    credentials = f"url={repo_url}\nusername={constants.GITHUB_ACTOR}\npassword={constants.GITHUB_TOKEN}\n"
 
     result = run_command(f'echo -e "{credentials}" | git credential approve')
     if result.exit_code != 0:
