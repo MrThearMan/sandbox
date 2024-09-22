@@ -88,7 +88,7 @@ def validate_fast_forward(*, base_sha: str, head_sha: str) -> None:
 
     result = run_command(f"git merge-base --is-ancestor {base_sha} {head_sha}", directory=constants.REPO_PATH)
     if result.exit_code != 0:
-        msg = f"Cannot fast forward `{base_sha[:7]}` to `{head_sha[:7]}`."
+        msg = f"Cannot fast-forward `{base_sha[:7]}` to `{head_sha[:7]}`."
         if result.err:
             msg += f" Error: {result.err}"
         raise PullRequestFastForwardError(msg)
@@ -111,7 +111,7 @@ def push_branch_to_ref(*, branch_name: str, commit_sha: str) -> None:
 
     result = run_command(f"git push origin {commit_sha}:{branch_name}", directory=constants.REPO_PATH)
     if result.exit_code != 0:
-        msg = f"Could not fast forward `{branch_name}` to `{commit_sha}`."
+        msg = f"Could not push `{branch_name}` to `{commit_sha}`."
         if result.err:
             msg += f" Error: {result.err}"
         raise PullRequestFastForwardError(msg)
