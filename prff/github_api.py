@@ -43,7 +43,7 @@ def get_request(*, url: str) -> dict[str, Any] | None:
     finally:
         connection.close()
 
-    if 200 <= response.status < 300:  # noqa: PLR2004
+    if not (200 <= response.status < 300):  # noqa: PLR2004
         logger.error(f"Unexpected status code: {response.status}: {content}")
         return None
 
@@ -71,7 +71,7 @@ def post_request(*, url: str, data: dict[str, Any]) -> dict[str, Any] | None:
     finally:
         connection.close()
 
-    if 200 <= response.status < 300:  # noqa: PLR2004
+    if not (200 <= response.status < 300):  # noqa: PLR2004
         logger.error(f"Unexpected status code: {response.status}: {content}")
         return None
 
