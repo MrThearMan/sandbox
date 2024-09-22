@@ -2,8 +2,18 @@ name: Test
 
 on:
   issue_comment:
-    types: [created, edited]
+    types:
+      - created
+      - edited
 
 jobs:
   test:
+
+    permissions:
+      contents: read  # Allows reading repo to check if fast-forwarding is possible.
+      pull-requests: write  # Writing comments on PRs.
+      issues: write  # Also required for posting comments on PRs.
+
     uses: MrThearMan/sandbox/.github/workflows/prff.yml@main
+    with:
+      log_level: DEBUG
