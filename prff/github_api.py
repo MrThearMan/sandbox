@@ -44,7 +44,7 @@ def get_request(*, url: str) -> dict[str, Any] | None:
         connection.close()
 
     if not (200 <= response.status < 300):  # noqa: PLR2004
-        logger.error(f"Unexpected status code: {response.status}: {content}")
+        logger.error(f"Unexpected status code (`{response.status}`): {content}")
         return None
 
     try:
@@ -72,7 +72,7 @@ def post_request(*, url: str, data: dict[str, Any]) -> dict[str, Any] | None:
         connection.close()
 
     if not (200 <= response.status < 300):  # noqa: PLR2004
-        logger.error(f"Unexpected status code: {response.status}: {content}")
+        logger.error(f"Unexpected status code (`{response.status}`): {content}")
         return None
 
     try:
@@ -108,13 +108,13 @@ def fetch_user_permissions(permissions_url: str) -> UserPermission:
 
 def validate_push_permissions(*, permissions: UserPermission) -> None:
     username = permissions["user"]["login"]
-    logger.info(f"Checking if user '{username}' has permissions for pushing to this repo...")
+    logger.info(f"Checking if user `{username}` has permissions for pushing to this repo...")
 
     if permissions["user"]["permissions"]["push"] is False:
-        msg = f"User '{username}' does not have permissions for pushing to this repo."
+        msg = f"User `{username}` does not have permissions for pushing to this repo."
         raise PullRequestFastForwardError(msg)
 
-    logger.info(f"User '{username}' has the correct permissions.")
+    logger.info(f"User `{username}` has the correct permissions.")
 
 
 def post_error_comment(*, error: str, comments_url: str) -> None:
