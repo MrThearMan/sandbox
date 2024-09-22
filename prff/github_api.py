@@ -110,7 +110,7 @@ def validate_push_permissions(*, permissions: UserPermission) -> None:
     username = permissions["user"]["login"]
     logger.info(f"Checking if user `{username}` has permissions for pushing to this repo...")
 
-    if permissions["user"]["permissions"]["push"] is True:
+    if permissions["user"]["permissions"]["push"] is False:
         msg = f"User `{username}` does not have permissions for pushing to this repo."
         raise PullRequestFastForwardError(msg)
 
