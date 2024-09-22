@@ -1,14 +1,18 @@
 from __future__ import annotations
 
+import io
 import logging
 import sys
 from typing import Any
 
 __all__ = [
+    "SUMMARY",
     "logger",
 ]
 
 logger = logging.getLogger(__name__)
+
+SUMMARY = io.StringIO()
 
 
 class LevelFilter(logging.Filter):
@@ -28,3 +32,7 @@ logger.addHandler(default_handler)
 error_handler = logging.StreamHandler(sys.stderr)
 error_handler.setLevel(logging.ERROR)
 logger.addHandler(error_handler)
+
+summary_handler = logging.StreamHandler(SUMMARY)
+summary_handler.setLevel(logging.DEBUG)
+logger.addHandler(summary_handler)

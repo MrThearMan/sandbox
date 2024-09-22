@@ -27,8 +27,5 @@ jobs:
           PYTHONDONTWRITEBYTECODE: "1"
           PYTHONFAULTHANDLER: "1"
           PYTHONENCODING: "utf-8"
-        run: |
-          python ${{ github.workspace }}/main.py \
-            --event-path '${{ github.event_path }}' \
-            --log-level '${{ inputs.log_level }}'
+        run: python ${{ github.workspace }}/main.py --log-level '${{ inputs.log_level }}'
         shell: bash

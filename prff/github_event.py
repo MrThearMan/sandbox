@@ -1,6 +1,5 @@
-from __future__ import annotations
-
 import json
+import os
 from typing import TYPE_CHECKING
 
 from prff.logging import logger
@@ -8,16 +7,27 @@ from prff.logging import logger
 if TYPE_CHECKING:
     from prff.github_schema import IssueCommentEvent
 
+
 __all__ = [
-    "load_issue_comment_event",
+    "load_urls_from_event",
 ]
 
 
-def load_issue_comment_event(*, path: str) -> IssueCommentEvent:
-    logger.info(f"Loading github event from '{path}'...")
+def load_urls_from_event() -> tuple[str, str]:
+    logger.info("Loading GitHub Actions event data...")
 
-    with open(path, encoding="utf-8") as f:  # noqa: PTH123
-        data: IssueCommentEvent = json.load(f)
+    with open(os.environ["GITHUB_EVENT_PATH"], encoding="utf-8") as f:  # noqa: PTH123
+        event: IssueCommentEvent = json.load(f)
 
-    logger.info("PR event loaded...")
-    return data
+    logger.info("Event data loaded.")
+    logger.info("Parsing pull request URL and permissions URL from event data...")
+
+    pull_request_url = event["issue"]["pull_request"]["url"]
+
+    username = event["sender"]["login"]
+    collaborators_url = event["repository"]["collaborators_url"].format(**{"/collaborator": f"/{username}"})
+    permissions_url = f"{collaborators_url}/permission"
+
+    logger.info("URLs parsed.")
+
+    return pull_request_url, permissions_url

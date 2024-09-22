@@ -1,42 +1,35 @@
 #!/usr/bin/env python
+
+import os
 from argparse import ArgumentParser
 
 from prff.exception import PullRequestFastForwardError
 from prff.fast_forward import fast_forward_pull_request
-from prff.github_event import load_issue_comment_event
-from prff.logging import logger
+from prff.github_event import load_urls_from_event
+from prff.logging import SUMMARY, logger
 
 if __name__ == "__main__":
     argparser = ArgumentParser()
-    argparser.add_argument("--event-path", type=str, required=True)
     argparser.add_argument("--log-level", type=str, default="INFO")
     args = argparser.parse_args()
 
+    exit_code: int = 0
     logger.setLevel(args.log_level.upper())
 
     try:
-        event = load_issue_comment_event(path=args.event_path)
-
-        pull_request_url = event["issue"]["pull_request"]["url"]
-
-        username = event["sender"]["login"]
-        collaborators_url = event["repository"]["collaborators_url"].format(**{"/collaborator": f"/{username}"})
-        permissions_url = f"{collaborators_url}/permission"
-
-    except Exception as error:
-        logger.exception("Error loading required data from GitHub event", exc_info=error)
-        raise SystemExit(1) from error
-
-    try:
+        pull_request_url, permissions_url = load_urls_from_event()
         fast_forward_pull_request(pull_request_url=pull_request_url, permissions_url=permissions_url)
 
-    # TODO: Add comment to PR when job fails
     except PullRequestFastForwardError as error:
         logger.error(error)
-        raise SystemExit(1) from error
+        exit_code = 1
 
-    except Exception as error:
+    except Exception as error:  # noqa: BLE001
         logger.exception("An unexpected error occurred", exc_info=error)
-        raise SystemExit(1) from error
+        exit_code = 1
 
-    raise SystemExit(0)
+    finally:
+        # Add job summary for the GitHub Actions run
+        os.environ["GITHUB_STEP_SUMMARY"] = str(SUMMARY.seek(0).read())
+
+    raise SystemExit(exit_code)

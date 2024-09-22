@@ -6,46 +6,11 @@ from prff.exception import PullRequestFastForwardError
 from prff.logging import logger
 
 __all__ = [
-    "approve_git_credentials",
     "clone_repo_at_ref",
     "create_branch",
     "fetch_ref",
-    "set_git_credential_helper_to_store",
     "validate_fast_forward",
 ]
-
-
-def set_git_credential_helper_to_store() -> None:
-    """
-    Sets the git credential.helper to use the on-disk store.
-    See: https://git-scm.com/docs/git-credential-store
-    """
-    logger.info("Configure git 'credential.helper' to use on-disk store...")
-
-    result = run_command("git config --global credential.helper store")
-    if result.exit_code != 0:
-        msg = f"Could not set git 'credential.helper' to store. Error: {result.err}"
-        raise PullRequestFastForwardError(msg)
-
-    logger.info("Git 'credential.helper' set.")
-
-
-def approve_git_credentials(*, repo_url: str) -> None:
-    """
-    Approves the git credentials for the given clone URL.
-
-    :param repo_url: The URL of the repository to approve the credentials for.
-    """
-    logger.info("Approving git credentials...")
-
-    credentials = f"url={repo_url}\nusername={constants.GITHUB_ACTOR}\npassword={constants.GITHUB_TOKEN}\n"
-
-    result = run_command(f'echo -e "{credentials}" | git credential approve')
-    if result.exit_code != 0:
-        msg = f"Could not approve git credentials. Error: {result.err}"
-        raise PullRequestFastForwardError(msg)
-
-    logger.info("Git credentials approved.")
 
 
 def clone_repo_at_ref(*, repo_url: str, branch_name: str) -> None:
