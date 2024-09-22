@@ -30,15 +30,15 @@ def set_git_credential_helper_to_store() -> None:
     logger.info("Git 'credential.helper' set.")
 
 
-def approve_git_credentials(*, clone_url: str) -> None:
+def approve_git_credentials(*, repo_url: str) -> None:
     """
     Approves the git credentials for the given clone URL.
 
-    :param clone_url: The URL of the repository to approve the credentials for.
+    :param repo_url: The URL of the repository to approve the credentials for.
     """
     logger.info("Approving git credentials...")
 
-    credentials = f"url={clone_url}\nusername={constants.GITHUB_ACTOR}\npassword={constants.GITHUB_TOKEN}"
+    credentials = f"url={repo_url}\nusername={constants.GITHUB_ACTOR}\npassword={constants.GITHUB_TOKEN}"
 
     result = run_command(f'echo -e "{credentials}" | git credential approve')
     if result.exit_code != 0:
@@ -48,18 +48,18 @@ def approve_git_credentials(*, clone_url: str) -> None:
     logger.info("Git credentials approved.")
 
 
-def clone_repo_at_ref(*, clone_url: str, ref: str) -> None:
+def clone_repo_at_ref(*, repo_url: str, branch_name: str) -> None:
     """
     Clones the repository at the specified reference.
     Only the specified reference is cloned, not the entire repository.
     Repo is cloned to the 'REPO_PATH'.
 
-    :param clone_url: The URL of the repository to clone.
-    :param ref: The reference to clone.
+    :param repo_url: The URL of the repository to clone.
+    :param branch_name: The branch to clone.
     """
-    logger.info(f"Cloning '{ref}' from '{clone_url}'...")
+    logger.info(f"Cloning '{branch_name}' from '{repo_url}'...")
 
-    result = run_command(f"git clone --quiet --single-branch --branch {ref} {clone_url} {constants.REPO_PATH}")
+    result = run_command(f"git clone --quiet --single-branch --branch {branch_name} {repo_url} {constants.REPO_PATH}")
     if result.exit_code != 0:
         msg = f"Could not clone base ref. Error: {result.err}"
         raise PullRequestFastForwardError(msg)
@@ -67,16 +67,17 @@ def clone_repo_at_ref(*, clone_url: str, ref: str) -> None:
     logger.info("Repo cloned.")
 
 
-def fetch_ref(*, clone_url: str, ref: str) -> None:
+def fetch_ref(*, repo_url: str, commit_sha: str) -> None:
     """
-    Fetches the specified reference from the repository.
+    Fetches commits until the specified commit SHA from the given repository.
+    Operation is performed in the 'REPO_PATH'.
 
-    :param clone_url: The URL of the repository to fetch from.
-    :param ref: The reference to fetch.
+    :param repo_url: The URL of the repository to fetch from.
+    :param commit_sha: The commit SHA to fetch.
     """
-    logger.info(f"Fetching '{ref}' from '{clone_url}'...")
+    logger.info(f"Fetching '{commit_sha[:7]}' from '{repo_url}'...")
 
-    result = run_command(f"git fetch --quiet {clone_url} {ref}", directory=constants.REPO_PATH)
+    result = run_command(f"git fetch --quiet {repo_url} {commit_sha}", directory=constants.REPO_PATH)
     if result.exit_code != 0:
         msg = f"Could not fetch pull request ref. Error: {result.err}"
         raise PullRequestFastForwardError(msg)
@@ -84,18 +85,19 @@ def fetch_ref(*, clone_url: str, ref: str) -> None:
     logger.info("Ref fetched.")
 
 
-def create_branch(*, name: str, sha: str) -> None:
+def create_branch(*, branch_name: str, commit_sha: str) -> None:
     """
-    Creates a new branch to the given commit with the given name.
+    Creates a new branch to the given commit SHA with the given name.
+    Operation is performed in the 'REPO_PATH'.
 
     Note: Adding a commit to a branch removes it from a detached state (e.g. from 'fetch_ref').
 
-    :param name: The name of the new branch.
-    :param sha: The commit SHA to create the branch from.
+    :param branch_name: The name of the new branch.
+    :param commit_sha: The commit SHA to create the branch from.
     """
-    logger.info(f"Creating a new branch '{name}' at '{sha[:7]}'...")
+    logger.info(f"Creating a new branch '{branch_name}' at '{commit_sha[:7]}'...")
 
-    result = run_command(f"git branch -f {name} {sha}", directory=constants.REPO_PATH)
+    result = run_command(f"git branch -f {branch_name} {commit_sha}", directory=constants.REPO_PATH)
     if result.exit_code != 0:
         msg = f"Could not add commit to branch. Error: {result.err}"
         raise PullRequestFastForwardError(msg)
@@ -106,6 +108,7 @@ def create_branch(*, name: str, sha: str) -> None:
 def validate_fast_forward(*, base_sha: str, head_sha: str) -> None:
     """
     Checks if the base SHA can be fast-forwarded to the head SHA.
+    Operation is performed in the 'REPO_PATH'.
 
     :param base_sha: The base SHA to check.
     :param head_sha: The head SHA to check.
@@ -120,18 +123,19 @@ def validate_fast_forward(*, base_sha: str, head_sha: str) -> None:
     logger.info("Fast forwarding is possible.")
 
 
-def push_branch_to_ref(*, branch: str, sha: str) -> None:
+def push_branch_to_ref(*, branch_name: str, commit_sha: str) -> None:
     """
     Pushes the specified branch to the specified SHA by fast-forwarding.
+    Operation is performed in the 'REPO_PATH'.
 
-    :param branch: The branch to fast-forward.
-    :param sha: The commit SHA to push to the head of the branch.
+    :param branch_name: The branch to fast-forward.
+    :param commit_sha: The commit SHA to push to the head of the branch.
     """
-    logger.info("Pushing branch to ref by fast-forwarding...")
+    logger.info(f"Pushing '{branch_name}' to '{commit_sha}'...")
 
-    result = run_command(f"git push origin {sha}:{branch}", directory=constants.REPO_PATH)
+    result = run_command(f"git push origin {commit_sha}:{branch_name}", directory=constants.REPO_PATH)
     if result.exit_code != 0:
-        msg = f"Could not fast forward '{branch}' to '{sha}'. Error: {result.err}"
+        msg = f"Could not fast forward '{branch_name}' to '{commit_sha}'. Error: {result.err}"
         raise PullRequestFastForwardError(msg)
 
-    logger.info("Fast-forwarding done.")
+    logger.info("Push successful.")

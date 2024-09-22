@@ -21,13 +21,13 @@ def fast_forward_pull_request(*, pull_request_url: str, permissions_url: str) ->
     pull_request = PullRequestData.from_github(url=pull_request_url)
 
     set_git_credential_helper_to_store()
-    approve_git_credentials(clone_url=pull_request.base_clone_url)
+    approve_git_credentials(repo_url=pull_request.base_clone_url)
     if pull_request.pr_clone_url != pull_request.base_clone_url:
-        approve_git_credentials(clone_url=pull_request.pr_clone_url)
+        approve_git_credentials(repo_url=pull_request.pr_clone_url)
 
-    clone_repo_at_ref(clone_url=pull_request.base_clone_url, ref=pull_request.base_branch_name)
-    fetch_ref(clone_url=pull_request.pr_clone_url, ref=pull_request.pr_head_sha)
-    create_branch(name=pull_request.pr_branch_name, sha=pull_request.pr_head_sha)
+    clone_repo_at_ref(repo_url=pull_request.base_clone_url, branch_name=pull_request.base_branch_name)
+    fetch_ref(repo_url=pull_request.pr_clone_url, commit_sha=pull_request.pr_head_sha)
+    create_branch(branch_name=pull_request.pr_branch_name, commit_sha=pull_request.pr_head_sha)
 
     pull_request.fix_base_sha()
 
@@ -36,7 +36,7 @@ def fast_forward_pull_request(*, pull_request_url: str, permissions_url: str) ->
     permissions = fetch_user_permissions(permissions_url=permissions_url)
     validate_push_permissions(permissions=permissions)
 
-    push_branch_to_ref(branch=pull_request.base_branch_name, sha=pull_request.pr_head_sha)
+    push_branch_to_ref(branch_name=pull_request.base_branch_name, commit_sha=pull_request.pr_head_sha)
 
     # TODO: Add job summary:
     #  https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#adding-a-job-summary

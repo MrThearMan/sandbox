@@ -13,21 +13,20 @@ __all__ = [
 ]
 
 
-_HEADERS = {
-    "Accept": "application/vnd.github+json",
-    "Authorization": f"Bearer {constants.GITHUB_TOKEN}",
-    "X-GitHub-Api-Version": "2022-11-28",
-    "User-Agent": "MrThearMan-GitHub-Fast-Forward-Action",
-}
-
-
 def get_request(*, url: str) -> dict[str, Any] | None:
     url_parts = urllib.parse.urlparse(url)
 
     connection = http.client.HTTPSConnection(url_parts.netloc)
 
+    github_api_headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {constants.GITHUB_TOKEN}",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "MrThearMan-GitHub-Fast-Forward-Action",
+    }
+
     try:
-        connection.request("GET", url=url_parts.path, headers=_HEADERS)
+        connection.request("GET", url=url_parts.path, headers=github_api_headers)
         response = connection.getresponse()
         content = response.read().decode()
     finally:

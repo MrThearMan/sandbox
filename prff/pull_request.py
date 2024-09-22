@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import urllib.parse
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Self
 
@@ -20,22 +21,22 @@ __all__ = [
 @dataclass
 class PullRequestData:
     base_clone_url: str
-    """Clone URL for the PR's base branch."""
+    """Clone URL for the pull request's base branch."""
 
     base_branch_name: str
-    """Name for the PR's base branch."""
+    """Name for the pull request's base branch."""
 
     base_head_sha: str
-    """Commit SHA for the PR's base branch's head commit."""
+    """Commit SHA for the pull request's base branch's head commit."""
 
     pr_clone_url: str
-    """Clone URL for the PR's branch."""
+    """Clone URL for the pull request's branch."""
 
     pr_branch_name: str
-    """Name for the PR's branch."""
+    """Name for the pull request's branch."""
 
     pr_head_sha: str
-    """Commit SHA for the PR branch's head commit."""
+    """Commit SHA for the pull request branch's head commit."""
 
     @classmethod
     def from_github(cls, *, url: str) -> Self:
@@ -50,16 +51,22 @@ class PullRequestData:
         logger.info("Parsing pull request data...")
 
         info = PullRequestData(
-            base_clone_url=response["base"]["repo"]["clone_url"],
+            base_clone_url=cls.add_actor_to_clone_url(url=response["base"]["repo"]["clone_url"]),
             base_branch_name=response["base"]["ref"],
             base_head_sha=response["base"]["sha"],
-            pr_clone_url=response["head"]["repo"]["clone_url"],
+            pr_clone_url=cls.add_actor_to_clone_url(url=response["head"]["repo"]["clone_url"]),
             pr_branch_name=response["head"]["ref"],
             pr_head_sha=response["head"]["sha"],
         )
 
         logger.info("Pull request data parsed.")
         return info
+
+    @staticmethod
+    def add_actor_to_clone_url(*, url: str) -> str:
+        clone_url_parts = urllib.parse.urlparse(url)._asdict()
+        clone_url_parts["netloc"] = f"{constants.GITHUB_ACTOR}@{clone_url_parts['netloc']}"
+        return urllib.parse.urlunparse(clone_url_parts.values())  # type: ignore[return-value]
 
     def fix_base_sha(self) -> None:
         # 'base_sha' is not updated correctly when the PR base is changed.
