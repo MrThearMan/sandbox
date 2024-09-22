@@ -25,7 +25,7 @@ class PullRequestData:
     head_sha: str
 
     @classmethod
-    def from_github(*, url: str) -> Self:
+    def from_github(cls, *, url: str) -> Self:
         logger.info("Fetching pull request data from GitHub...")
 
         response: PullRequest | None = get_request(url=url)
