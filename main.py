@@ -4,7 +4,8 @@ from argparse import ArgumentParser
 
 from prff.exception import PullRequestFastForwardError
 from prff.fast_forward import fast_forward_pull_request
-from prff.github_actions import load_urls_from_event, write_job_summary
+from prff.github_actions import load_event_data, write_job_summary
+from prff.github_api import add_rocket_reaction
 from prff.logging import logger
 
 if __name__ == "__main__":
@@ -16,8 +17,11 @@ if __name__ == "__main__":
     logger.setLevel(args.log_level.upper())
 
     try:
-        pull_request_url, permissions_url = load_urls_from_event()
-        fast_forward_pull_request(pull_request_url=pull_request_url, permissions_url=permissions_url)
+        event_data = load_event_data()
+        fast_forward_pull_request(
+            pull_request_url=event_data.pull_request_url,
+            permissions_url=event_data.permissions_url,
+        )
 
     except PullRequestFastForwardError as error:
         logger.error(error)
@@ -26,6 +30,9 @@ if __name__ == "__main__":
     except Exception as error:  # noqa: BLE001
         logger.exception("An unexpected error occurred", exc_info=error)
         exit_code = 1
+
+    else:
+        add_rocket_reaction(reactions_url=event_data.reactions_url)
 
     finally:
         write_job_summary()

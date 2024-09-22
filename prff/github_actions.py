@@ -1,4 +1,5 @@
 import json
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from prff import constants
@@ -9,18 +10,25 @@ if TYPE_CHECKING:
 
 
 __all__ = [
-    "load_urls_from_event",
+    "load_event_data",
 ]
 
 
-def load_urls_from_event() -> tuple[str, str]:
-    logger.info("Loading GitHub Actions event data...")
+@dataclass
+class EventData:
+    pull_request_url: str
+    permissions_url: str
+    reactions_url: str
+
+
+def load_event_data() -> EventData:
+    logger.info("Loading GitHub Actions event data from file...")
 
     with open(constants.EVENT_PATH, encoding="utf-8") as f:  # noqa: PTH123
         event: IssueCommentEvent = json.load(f)
 
     logger.info("Event data loaded.")
-    logger.info("Parsing pull request URL and permissions URL from event data...")
+    logger.info("Parsing event data...")
 
     pull_request_url = event["issue"]["pull_request"]["url"]
 
@@ -28,9 +36,16 @@ def load_urls_from_event() -> tuple[str, str]:
     collaborators_url = event["repository"]["collaborators_url"].format(**{"/collaborator": f"/{username}"})
     permissions_url = f"{collaborators_url}/permission"
 
-    logger.info("URLs parsed.")
+    comment_url = event["comment"]["url"]
+    reactions_url = f"{comment_url}/reactions"
 
-    return pull_request_url, permissions_url
+    logger.info("Event data parsed.")
+
+    return EventData(
+        pull_request_url=pull_request_url,
+        permissions_url=permissions_url,
+        reactions_url=reactions_url,
+    )
 
 
 def write_job_summary() -> None:

@@ -130,3 +130,12 @@ def post_error_comment(*, error: str, comments_url: str) -> None:
     response = post_request(url=comments_url, data=data)
     if not response:
         logger.error("Could not post comment to pull request")
+
+
+def add_rocket_reaction(reactions_url: str) -> None:
+    data = {
+        "content": "rocket",
+    }
+    response = post_request(url=reactions_url, data=data)
+    if not response:
+        logger.error("Could not add rocket reaction to comment")
