@@ -8,6 +8,8 @@ on:
 
 jobs:
   fast-forward:
+
+    name: Fast-forward
     runs-on: ubuntu-latest
 
     permissions:
