@@ -84,7 +84,7 @@ def validate_fast_forward(*, base_sha: str, head_sha: str) -> None:
     :param base_sha: The base SHA to check.
     :param head_sha: The head SHA to check.
     """
-    logger.info(f"Checking if `{base_sha[:7]}` can fast-forwarded to `{head_sha[:7]}`...")
+    logger.info(f"Checking if `{base_sha[:7]}` can be fast-forwarded to `{head_sha[:7]}`...")
 
     result = run_command(f"git merge-base --is-ancestor {base_sha} {head_sha}", directory=constants.REPO_PATH)
     if result.exit_code != 0:

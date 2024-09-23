@@ -16,4 +16,5 @@ jobs:
       issues: write  # Also required for posting comments on PRs.
 
     steps:
-      - uses: MrThearMan/sandbox@main
+      - name: Fast-forward merge
+        uses: MrThearMan/sandbox@main
