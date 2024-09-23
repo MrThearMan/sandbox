@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-from argparse import ArgumentParser
-
 from prff.exception import PullRequestFastForwardError
 from prff.fast_forward import fast_forward_pull_request
 from prff.github_actions import load_event_data, write_job_summary
@@ -9,12 +7,7 @@ from prff.github_api import add_rocket_reaction
 from prff.logging import logger
 
 if __name__ == "__main__":
-    argparser = ArgumentParser()
-    argparser.add_argument("--log-level", type=str, default="INFO")
-    args = argparser.parse_args()
-
     exit_code: int = 0
-    logger.setLevel(args.log_level.upper())
 
     try:
         event_data = load_event_data()

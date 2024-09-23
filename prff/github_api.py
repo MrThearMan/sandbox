@@ -107,7 +107,7 @@ def fetch_user_permissions(permissions_url: str) -> UserPermission:
 
     response = get_request(url=permissions_url)
     if not response.is_success:
-        msg = f"[`{response.status}`] Could not get permissions: {response.data}"
+        msg = f"[`{response.status}`] Could not fetch permissions: {response.data}"
         raise PullRequestFastForwardError(msg)
 
     logger.info("Permissions received.")
@@ -119,10 +119,10 @@ def validate_push_permissions(*, permissions: UserPermission) -> None:
     logger.info(f"Checking if user `{username}` has permissions for pushing to this repo...")
 
     if permissions["user"]["permissions"]["push"] is False:
-        msg = f"User `{username}` does not have permissions for pushing to this repo."
+        msg = f"User `{username}` does not have required permissions."
         raise PullRequestFastForwardError(msg)
 
-    logger.info(f"User `{username}` has the correct permissions.")
+    logger.info(f"User `{username}` has the required permissions.")
 
 
 def post_error_comment(*, error: str, comments_url: str) -> None:
@@ -138,7 +138,7 @@ def post_error_comment(*, error: str, comments_url: str) -> None:
     response = post_request(url=comments_url, data=data)
     if not response.is_success:
         msg = f"[`{response.status}`] Could not post comment to pull request: {response.data}"
-        logger.error(msg)
+        logger.warning(msg)
 
 
 def add_rocket_reaction(reactions_url: str) -> None:
@@ -148,4 +148,4 @@ def add_rocket_reaction(reactions_url: str) -> None:
     response = post_request(url=reactions_url, data=data)
     if not response.is_success:
         msg = f"[`{response.status}`] Could not add rocket reaction to comment: {response.data}"
-        logger.error(msg)
+        logger.warning(msg)

@@ -19,7 +19,7 @@ class CommandResult:
     exit_code: int
 
 
-def run_command(command: str, *, directory: Path | str | None = None) -> CommandResult | None:
+def run_command(command: str, *, directory: Path | str | None = None) -> CommandResult:
     """
     Run a command in the given directory using subprocess.
 

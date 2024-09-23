@@ -6,27 +6,27 @@ from prff.exception import PullRequestFastForwardError
 from prff.logging import logger
 
 __all__ = [
-    "clone_repo_at_ref",
+    "clone_repo_at_branch",
     "create_branch",
-    "fetch_ref",
+    "fetch_commit",
     "validate_fast_forward",
 ]
 
 
-def clone_repo_at_ref(*, repo_url: str, branch_name: str) -> None:
+def clone_repo_at_branch(*, repo_url: str, branch_name: str) -> None:
     """
-    Clones the repository at the specified reference.
-    Only the specified reference is cloned, not the entire repository.
+    Clones the repository at the specified branch.
+    Only that branch is cloned, not the entire repository.
     Repo is cloned to the 'REPO_PATH'.
 
     :param repo_url: The URL of the repository to clone.
     :param branch_name: The branch to clone.
     """
-    logger.info(f"Cloning `{branch_name}` from `{repo_url}`...")
+    logger.info(f"Cloning repo `{repo_url}` at branch `{branch_name}`...")
 
     result = run_command(f"git clone --quiet --single-branch --branch {branch_name} {repo_url} {constants.REPO_PATH}")
     if result.exit_code != 0:
-        msg = "Could not clone base ref."
+        msg = f"Could not clone branch `{branch_name}`."
         if result.err:
             msg += f" Error: {result.err}"
         raise PullRequestFastForwardError(msg)
@@ -34,32 +34,32 @@ def clone_repo_at_ref(*, repo_url: str, branch_name: str) -> None:
     logger.info("Repo cloned.")
 
 
-def fetch_ref(*, repo_url: str, commit_sha: str) -> None:
+def fetch_commit(*, repo_url: str, commit_sha: str) -> None:
     """
     Fetches commits until the specified commit SHA from the given repository.
     Operation is performed in the 'REPO_PATH'.
 
     :param repo_url: The URL of the repository to fetch from.
-    :param commit_sha: The commit SHA to fetch.
+    :param commit_sha: The commit to target.
     """
-    logger.info(f"Fetching `{commit_sha[:7]}` from `{repo_url}`...")
+    logger.info(f"Fetching commit `{commit_sha[:7]}` from repo `{repo_url}`...")
 
     result = run_command(f"git fetch --quiet {repo_url} {commit_sha}", directory=constants.REPO_PATH)
     if result.exit_code != 0:
-        msg = "Could not fetch pull request ref."
+        msg = f"Could not fetch commit `{commit_sha[:7]}`."
         if result.err:
             msg += f" Error: {result.err}"
         raise PullRequestFastForwardError(msg)
 
-    logger.info("Ref fetched.")
+    logger.info("Commit fetched.")
 
 
 def create_branch(*, branch_name: str, commit_sha: str) -> None:
     """
-    Creates a new branch to the given commit SHA with the given name.
+    Creates a new branch at the given commit SHA with the given name.
     Operation is performed in the 'REPO_PATH'.
 
-    Note: Adding a commit to a branch removes it from a detached state (e.g. from 'fetch_ref').
+    Note: Adding a commit to a branch removes it from a detached state (e.g. from 'fetch_commit').
 
     :param branch_name: The name of the new branch.
     :param commit_sha: The commit SHA to create the branch from.
@@ -68,7 +68,7 @@ def create_branch(*, branch_name: str, commit_sha: str) -> None:
 
     result = run_command(f"git branch -f {branch_name} {commit_sha}", directory=constants.REPO_PATH)
     if result.exit_code != 0:
-        msg = "Could not add commit to branch."
+        msg = f"Could not create branch at commit `{commit_sha}`."
         if result.err:
             msg += f" Error: {result.err}"
         raise PullRequestFastForwardError(msg)
@@ -84,7 +84,7 @@ def validate_fast_forward(*, base_sha: str, head_sha: str) -> None:
     :param base_sha: The base SHA to check.
     :param head_sha: The head SHA to check.
     """
-    logger.info(f"Checking if `{base_sha[:7]}` can fast forwarded to `{head_sha[:7]}`...")
+    logger.info(f"Checking if `{base_sha[:7]}` can fast-forwarded to `{head_sha[:7]}`...")
 
     result = run_command(f"git merge-base --is-ancestor {base_sha} {head_sha}", directory=constants.REPO_PATH)
     if result.exit_code != 0:
@@ -93,7 +93,7 @@ def validate_fast_forward(*, base_sha: str, head_sha: str) -> None:
             msg += f" Error: {result.err}"
         raise PullRequestFastForwardError(msg)
 
-    logger.info("Fast forwarding is possible.")
+    logger.info("Fast-forwarding is possible.")
 
 
 def push_branch_to_ref(*, branch_name: str, commit_sha: str) -> None:
@@ -104,14 +104,14 @@ def push_branch_to_ref(*, branch_name: str, commit_sha: str) -> None:
     Note: Since we are using the 'GITHUB_TOKEN', push doesn't trigger additional workflows.
     https://docs.github.com/actions/security-for-github-actions/security-guides/automatic-token-authentication
 
-    :param branch_name: The branch to fast-forward.
-    :param commit_sha: The commit SHA to push to the head of the branch.
+    :param branch_name: The branch to push.
+    :param commit_sha: The commit SHA to push to the head of the branch to.
     """
-    logger.info(f"Pushing `{branch_name}` to `{commit_sha}`...")
+    logger.info(f"Pushing `{branch_name}` to `{commit_sha[:7]}`...")
 
     result = run_command(f"git push origin {commit_sha}:{branch_name}", directory=constants.REPO_PATH)
     if result.exit_code != 0:
-        msg = f"Could not push `{branch_name}` to `{commit_sha}`."
+        msg = f"Could not push `{branch_name}` to `{commit_sha[:7]}`."
         if result.err:
             msg += f" Error: {result.err}"
         raise PullRequestFastForwardError(msg)

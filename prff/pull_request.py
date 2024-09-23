@@ -65,13 +65,13 @@ class PullRequestData:
     def fix_base_sha(self) -> None:
         # 'base_sha' is not updated correctly when the PR base is changed.
         # See. https://github.com/orgs/community/discussions/59677
-        # Therefore, we need to parse the actual base SHA from the cloned repo.
-        logger.info("Parsing base ref...")
+        # Therefore, we need to parse the actual 'base_sha' from the cloned repo.
+        logger.info("Parsing base sha...")
 
         result = run_command(f"git rev-parse origin/{self.base_branch_name}", directory=constants.REPO_PATH)
         if result.err is not None:
-            msg = f"Could not parse base ref. Error: {result.err}"
+            msg = f"Could not parse base sha. Error: {result.err}"
             raise PullRequestFastForwardError(msg)
 
-        logger.info("Base ref parsed.")
+        logger.info("Base sha parsed.")
         self.base_head_sha = result.out
