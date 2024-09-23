@@ -68,7 +68,7 @@ def create_branch(*, branch_name: str, commit_sha: str) -> None:
 
     result = run_command(f"git branch -f {branch_name} {commit_sha}", directory=constants.REPO_PATH)
     if result.exit_code != 0:
-        msg = f"Could not create branch at commit `{commit_sha}`."
+        msg = f"Could not create branch at commit `{commit_sha[:7]}`."
         if result.err:
             msg += f" Error: {result.err}"
         raise PullRequestFastForwardError(msg)
@@ -78,11 +78,11 @@ def create_branch(*, branch_name: str, commit_sha: str) -> None:
 
 def validate_fast_forward(*, base_sha: str, head_sha: str) -> None:
     """
-    Checks if the base SHA can be fast-forwarded to the head SHA.
+    Checks if the base commit can be fast-forwarded to the head commit.
     Operation is performed in the 'REPO_PATH'.
 
-    :param base_sha: The base SHA to check.
-    :param head_sha: The head SHA to check.
+    :param base_sha: The commit to check fast-forwarding for.
+    :param head_sha: The commit to check fast-forwarding against.
     """
     logger.info(f"Checking if `{base_sha[:7]}` can be fast-forwarded to `{head_sha[:7]}`...")
 
@@ -96,7 +96,7 @@ def validate_fast_forward(*, base_sha: str, head_sha: str) -> None:
     logger.info("Fast-forwarding is possible.")
 
 
-def push_branch_to_ref(*, branch_name: str, commit_sha: str) -> None:
+def push_branch_to_commit(*, branch_name: str, commit_sha: str) -> None:
     """
     Pushes the specified branch to the specified SHA by fast-forwarding.
     Operation is performed in the 'REPO_PATH'.

@@ -58,6 +58,7 @@ class PullRequestData:
 
     @staticmethod
     def add_auth(*, url: str) -> str:
+        """Adds username and password to clone urls."""
         clone_url_parts = urllib.parse.urlparse(url)._asdict()
         clone_url_parts["netloc"] = f"{constants.GITHUB_ACTOR}:{constants.GITHUB_TOKEN}@{clone_url_parts['netloc']}"
         return urllib.parse.urlunparse(clone_url_parts.values())  # type: ignore[return-value]
@@ -66,12 +67,12 @@ class PullRequestData:
         # 'base_sha' is not updated correctly when the PR base is changed.
         # See. https://github.com/orgs/community/discussions/59677
         # Therefore, we need to parse the actual 'base_sha' from the cloned repo.
-        logger.info("Parsing base sha...")
+        logger.info(f"Parsing commit sha for `{self.base_branch_name}`...")
 
         result = run_command(f"git rev-parse origin/{self.base_branch_name}", directory=constants.REPO_PATH)
         if result.err is not None:
             msg = f"Could not parse base sha. Error: {result.err}"
             raise PullRequestFastForwardError(msg)
 
-        logger.info("Base sha parsed.")
+        logger.info("Commit SHA parsed.")
         self.base_head_sha = result.out

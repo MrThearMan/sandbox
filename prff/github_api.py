@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-import http.client
 import json
 import urllib.parse
 from dataclasses import dataclass
-from inspect import cleandoc
+from http.client import HTTPSConnection
 from typing import TYPE_CHECKING, Any
 
 from prff import constants
@@ -44,7 +43,7 @@ class HttpResponse:
 def get_request(*, url: str) -> HttpResponse:
     url_parts = urllib.parse.urlparse(url)
 
-    connection = http.client.HTTPSConnection(url_parts.netloc)
+    connection = HTTPSConnection(url_parts.netloc)
 
     headers = _GITHUB_API_HEADERS.copy()
 
@@ -58,7 +57,9 @@ def get_request(*, url: str) -> HttpResponse:
     try:
         response_data = json.loads(content)
     except Exception as error:
-        msg = f"Could not decode JSON response: {error}. Content: {content}"
+        msg = f"Could not decode JSON response: {error}."
+        if content:
+            msg += f" Content: '{content}'"
         raise PullRequestFastForwardError(msg) from error
 
     return HttpResponse(status=response.status, data=response_data)
@@ -67,7 +68,7 @@ def get_request(*, url: str) -> HttpResponse:
 def post_request(*, url: str, data: dict[str, Any]) -> HttpResponse:
     url_parts = urllib.parse.urlparse(url)
 
-    connection = http.client.HTTPSConnection(url_parts.netloc)
+    connection = HTTPSConnection(url_parts.netloc)
 
     headers = _GITHUB_API_HEADERS.copy()
     headers["Content-Type"] = "application/json"
@@ -84,7 +85,9 @@ def post_request(*, url: str, data: dict[str, Any]) -> HttpResponse:
     try:
         response_data = json.loads(content)
     except Exception as error:
-        msg = f"Could not decode JSON response: {error}. Content: {content}"
+        msg = f"Could not decode JSON response: {error}."
+        if content:
+            msg += f" Content: '{content}'"
         raise PullRequestFastForwardError(msg) from error
 
     return HttpResponse(status=response.status, data=response_data)
@@ -102,10 +105,10 @@ def fetch_pull_request(*, url: str) -> PullRequest:
     return response.data
 
 
-def fetch_user_permissions(permissions_url: str) -> UserPermission:
+def fetch_user_permissions(*, url: str) -> UserPermission:
     logger.info("Fetching user permissions...")
 
-    response = get_request(url=permissions_url)
+    response = get_request(url=url)
     if not response.is_success:
         msg = f"[`{response.status}`] Could not fetch permissions: {response.data}"
         raise PullRequestFastForwardError(msg)
@@ -126,22 +129,22 @@ def validate_push_permissions(*, permissions: UserPermission) -> None:
 
 
 def post_error_comment(*, error: str, comments_url: str) -> None:
-    data = {
-        "body": cleandoc(
-            f"""
-            Failed to fast-forward the pull request:
+    logger.info("Adding a comment to issue about error...")
 
-            > {error}
-            """
-        )
+    data = {
+        "body": f"Failed to fast-forward the pull request:\n\n> {error}",
     }
     response = post_request(url=comments_url, data=data)
     if not response.is_success:
         msg = f"[`{response.status}`] Could not post comment to pull request: {response.data}"
         logger.warning(msg)
+    else:
+        logger.info("Comment added.")
 
 
 def add_rocket_reaction(reactions_url: str) -> None:
+    logger.info("Adding a rocker reaction to comment to indicate successful merge...")
+
     data = {
         "content": "rocket",
     }
@@ -149,3 +152,5 @@ def add_rocket_reaction(reactions_url: str) -> None:
     if not response.is_success:
         msg = f"[`{response.status}`] Could not add rocket reaction to comment: {response.data}"
         logger.warning(msg)
+    else:
+        logger.info("Reaction added.")
